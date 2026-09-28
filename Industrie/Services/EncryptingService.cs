@@ -1,4 +1,4 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Industrie.Services
@@ -48,26 +48,41 @@ namespace Industrie.Services
 
         public string Decrypt(string cipherText)
         {
-            if (string.IsNullOrEmpty(cipherText)) return cipherText;
+            if (string.IsNullOrWhiteSpace(cipherText)) return cipherText ?? string.Empty;
 
-            byte[] fullCipher = Convert.FromBase64String(cipherText);
-
-            int nonceSize = AesGcm.NonceByteSizes.MaxSize;
-            int tagSize = AesGcm.TagByteSizes.MaxSize;
-            int cipherSize = fullCipher.Length - nonceSize - tagSize;
-
-            byte[] nonce = fullCipher[..nonceSize];
-            byte[] tag = fullCipher[nonceSize..(nonceSize + tagSize)];
-            byte[] cipherBytes = fullCipher[(nonceSize + tagSize)..];
-
-            byte[] plainBytes = new byte[cipherSize];
-
-            using (var aesGcm = new AesGcm(_key, AesGcm.TagByteSizes.MaxSize))
+            try
             {
-                aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
-            }
+                byte[] fullCipher = Convert.FromBase64String(cipherText);
 
-            return Encoding.UTF8.GetString(plainBytes);
+                int nonceSize = AesGcm.NonceByteSizes.MaxSize;
+                int tagSize = AesGcm.TagByteSizes.MaxSize;
+
+                // Validation de la longueur minimale du conteneur sécurisé
+                if (fullCipher.Length < nonceSize + tagSize)
+                {
+                    return "[Erreur format]";
+                }
+
+                int cipherSize = fullCipher.Length - nonceSize - tagSize;
+
+                byte[] nonce = fullCipher[..nonceSize];
+                byte[] tag = fullCipher[nonceSize..(nonceSize + tagSize)];
+                byte[] cipherBytes = fullCipher[(nonceSize + tagSize)..];
+
+                byte[] plainBytes = new byte[cipherSize];
+
+                using (var aesGcm = new AesGcm(_key, AesGcm.TagByteSizes.MaxSize))
+                {
+                    aesGcm.Decrypt(nonce, cipherBytes, tag, plainBytes);
+                }
+
+                return Encoding.UTF8.GetString(plainBytes);
+            }
+            catch (Exception)
+            {
+                // Dégradation gracieuse par ligne pour préserver l'intégrité du circuit Blazor Server
+                return "[Erreur déchiffrement]";
+            }
         }
     }
 }

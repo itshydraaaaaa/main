@@ -18,15 +18,7 @@ builder.Services.AddSignalR();
 builder.Services.AddSingleton<IEncryptionService, EncryptionService>();
 
 
-// les services de notification
-builder.Services.AddScoped<NotificationService>();
-builder.Services.AddScoped<DialogService>();
-builder.Services.AddScoped<TooltipService>();
-builder.Services.AddScoped<ContextMenuService>();
-
 builder.Services.AddScoped<IMachineService, MachineService>();
-
-var hseConnectionString = builder.Configuration.GetConnectionString("HseDbConnection");
 
 
 // 2. Configuration d'EF Core avec DbContextFactory pour Blazor (Support Supabase PostgreSQL & InMemory fallback)
@@ -79,7 +71,9 @@ else
 
 
 // ── Services ──
+#pragma warning disable CA1416
 builder.Services.AddScoped<ActiveDirectoryService>();
+#pragma warning restore CA1416
 
 
 var app = builder.Build();

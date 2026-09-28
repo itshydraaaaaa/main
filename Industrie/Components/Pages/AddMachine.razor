@@ -13,175 +13,213 @@
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Policy = "Responsable")]
 
-<PageTitle>@(isEdit ? "Modifier la Machine" : "Nouvelle Machine")</PageTitle>
+<PageTitle>@(isEdit ? $"Modifier {machine.Code} - LabControl Pro" : "Nouvelle Machine - LabControl Pro")</PageTitle>
 
-<RadzenCard Class="rz-my-4 rz-mx-auto" Style="max-width: 900px;">
-    <div class="d-flex align-items-center mb-4">
-        <RadzenButton Icon="arrow_back" ButtonStyle="ButtonStyle.Light" Class="me-3" Click="@GoBack" />
-        <h3 class="m-0">@(isEdit ? $"Modifier la machine : {machine.Code}" : "Créer une nouvelle machine")</h3>
-    </div>
-
-    <RadzenTemplateForm TItem="Machine" Data="@machine" Submit="@HandleSubmitAsync">
-        <RadzenStack Gap="1.5rem">
-
-            <!-- SECTION 1 : IDENTIFICATION -->
-            <RadzenFieldset Text="Informations Générales" Icon="computer">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <RadzenFormField Text="Code Machine *" Style="width: 100%;">
-                            <RadzenTextBox @bind-Value="@machine.Code" Disabled="@isEdit" Style="width: 100%;" />
-                        </RadzenFormField>
-                        @if (string.IsNullOrWhiteSpace(machine.Code) && isSubmitted)
+<div class="rz-my-3 rz-mx-auto" style="max-width: 960px;">
+    <!-- En-tête formulaire -->
+    <RadzenCard Class="mb-3 rz-shadow-1">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <RadzenButton Icon="arrow_back" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="@GoBack" Title="Retour à la liste" />
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <h4 class="m-0 fw-bold text-dark">@(isEdit ? "Modification Machine" : "Nouvelle Machine Industrielle")</h4>
+                        @if (isEdit)
                         {
-                            <span class="text-danger fs-7">Le code est obligatoire.</span>
+                            <RadzenBadge BadgeStyle="BadgeStyle.Primary" Text="@machine.Code" IsPill="true" />
                         }
                     </div>
-
-                    <div class="col-md-4">
-                        <RadzenFormField Text="Nom de la Machine" Style="width: 100%;">
-                            <RadzenTextBox @bind-Value="@machine.Name" Style="width: 100%;" />
-                        </RadzenFormField>
-                    </div>
-
-                    <div class="col-md-4">
-                        <RadzenFormField Text="Nom PC (PcName)" Style="width: 100%;">
-                            <RadzenTextBox @bind-Value="@machine.PcName" Style="width: 100%;" />
-                        </RadzenFormField>
-                    </div>
+                    <span class="text-muted text-xs">@(isEdit ? "Mise à jour des paramètres de la machine et des clés d'accès" : "Enregistrement d'un nouvel équipement de laboratoire")</span>
                 </div>
-            </RadzenFieldset>
+            </div>
+            <RadzenBadge BadgeStyle="@(isEdit ? BadgeStyle.Warning : BadgeStyle.Success)" Text="@(isEdit ? "Mode Édition" : "Mode Création")" />
+        </div>
+    </RadzenCard>
 
-            <!-- SECTION 2 : SÉCURITÉ ET ACCÈS -->
-            <RadzenFieldset Text="Accès & Authentification" Icon="lock">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <RadzenFormField Text="Session utilisateur" Style="width: 100%;">
-                            <RadzenTextBox @bind-Value="@machine.Session" Style="width: 100%;" />
-                        </RadzenFormField>
-                    </div>
+    <!-- Carte Principale Formulaire -->
+    <RadzenCard Class="rz-shadow-2">
+        <RadzenTemplateForm TItem="Machine" Data="@machine" Submit="@HandleSubmitAsync">
+            <RadzenStack Gap="1.5rem">
 
-                    <div class="col-md-6">
-                        <RadzenFormField Text="@(isEdit ? "Mot de passe (Laisser vide pour ne pas modifier)" : "Mot de passe *")" Style="width: 100%;">
-                            <ChildContent>
-                                @if (showPassword)
-                                {
-                                    <RadzenTextBox Value="@rawPassword"
-                                                   @oninput="@(args => rawPassword = args.Value?.ToString() ?? string.Empty)"
-                                                   Style="width: 100%;" />
-                                }
-                                else
-                                {
-                                    <RadzenPassword Value="@rawPassword"
-                                                    @oninput="@(args => rawPassword = args.Value?.ToString() ?? string.Empty)"
-                                                    Style="width: 100%;" />
-                                }
-                            </ChildContent>
-                            <End>
-                                <RadzenButton Icon="@(showPassword ? "visibility_off" : "visibility")"
-                                              ButtonStyle="ButtonStyle.Light"
-                                              Variant="Variant.Flat"
-                                              Click="@(() => showPassword = !showPassword)"
-                                              Attributes="@(new Dictionary<string, object>{ { "tabindex", "-1" } })" />
-                            </End>
-                        </RadzenFormField>
+                <!-- SECTION 1 : IDENTIFICATION -->
+                <RadzenFieldset Text="Identification & Équipement" Icon="precision_manufacturing">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <RadzenFormField Text="Code Machine *" Style="width: 100%;">
+                                <RadzenTextBox @bind-Value="@machine.Code" Disabled="@isEdit" Placeholder="Ex: M-PROD-01" Style="width: 100%;" />
+                            </RadzenFormField>
+                            @if (string.IsNullOrWhiteSpace(machine.Code) && isSubmitted)
+                            {
+                                <span class="text-danger fs-7 d-block mt-1">Le code machine est obligatoire.</span>
+                            }
+                        </div>
+
+                        <div class="col-md-4">
+                            <RadzenFormField Text="Nom Commercial / Désignation" Style="width: 100%;">
+                                <RadzenTextBox @bind-Value="@machine.Name" Placeholder="Ex: Chromatographe HPLC" Style="width: 100%;" />
+                            </RadzenFormField>
+                        </div>
+
+                        <div class="col-md-4">
+                            <RadzenFormField Text="Nom Réseau (PcName)" Style="width: 100%;">
+                                <RadzenTextBox @bind-Value="@machine.PcName" Placeholder="Ex: LAB-PC-01" Style="width: 100%;" />
+                            </RadzenFormField>
+                        </div>
                     </div>
+                </RadzenFieldset>
+
+                <!-- SECTION 2 : SÉCURITÉ ET ACCÈS (AES-GCM) -->
+                <RadzenFieldset Text="Accès & Sécurité Chiffrée (AES-GCM)" Icon="security">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <RadzenFormField Text="Session Windows / Utilisateur" Style="width: 100%;">
+                                <RadzenTextBox @bind-Value="@machine.Session" Placeholder="Ex: lab_operator" Style="width: 100%;" />
+                            </RadzenFormField>
+                        </div>
+
+                        <div class="col-md-6">
+                            <RadzenFormField Text="@(isEdit ? "Mot de passe (Laisser vide pour conserver)" : "Mot de passe d'accès *")" Style="width: 100%;">
+                                <ChildContent>
+                                    @if (showPassword)
+                                    {
+                                        <RadzenTextBox Value="@rawPassword"
+                                                       @oninput="@(args => rawPassword = args.Value?.ToString() ?? string.Empty)"
+                                                       Placeholder="Saisir le mot de passe"
+                                                       Style="width: 100%;" />
+                                    }
+                                    else
+                                    {
+                                        <RadzenPassword Value="@rawPassword"
+                                                        @oninput="@(args => rawPassword = args.Value?.ToString() ?? string.Empty)"
+                                                        Placeholder="••••••••••••"
+                                                        Style="width: 100%;" />
+                                    }
+                                </ChildContent>
+                                <End>
+                                    <RadzenButton Icon="@(showPassword ? "visibility_off" : "visibility")"
+                                                  ButtonStyle="ButtonStyle.Light"
+                                                  Variant="Variant.Flat"
+                                                  Click="@(() => showPassword = !showPassword)"
+                                                  Attributes="@(new Dictionary<string, object>{ { "tabindex", "-1" } })" />
+                                </End>
+                            </RadzenFormField>
+                            <div class="d-flex align-items-center gap-1 mt-1 text-muted text-xs">
+                                <RadzenIcon Icon="verified_user" Style="font-size: 0.9rem;" Class="text-success" />
+                                <span>Chiffrement matériel AES-256 GCM certifié</span>
+                            </div>
+                        </div>
+                    </div>
+                </RadzenFieldset>
+
+                <!-- SECTION 3 : INFRASTRUCTURE & MATÉRIEL -->
+                <RadzenFieldset Text="Infrastructure & Matériel" Icon="hub">
+                    <div class="row g-3">
+                        <!-- DROPDOWN SITE -->
+                        <div class="col-md-4">
+                            <RadzenFormField Text="Site / Emplacement *" Style="width: 100%;">
+                                <RadzenDropDown Data="@sitesList"
+                                                TextProperty="Name"
+                                                ValueProperty="Id"
+                                                @bind-Value="@machine.SiteId"
+                                                Placeholder="Choisir un Site..."
+                                                Style="width: 100%;" />
+                            </RadzenFormField>
+                            @if (machine.SiteId <= 0 && isSubmitted)
+                            {
+                                <span class="text-danger fs-7 d-block mt-1">Le site est requis.</span>
+                            }
+                        </div>
+
+                        <!-- DROPDOWN OS -->
+                        <div class="col-md-4">
+                            <RadzenFormField Text="Système d'Exploitation (OS) *" Style="width: 100%;">
+                                <RadzenDropDown Data="@osList"
+                                                TextProperty="Name"
+                                                ValueProperty="Id"
+                                                @bind-Value="@machine.OSId"
+                                                Placeholder="Choisir un OS..."
+                                                Style="width: 100%;" />
+                            </RadzenFormField>
+                            @if (machine.OSId <= 0 && isSubmitted)
+                            {
+                                <span class="text-danger fs-7 d-block mt-1">L'OS est requis.</span>
+                            }
+                        </div>
+
+                        <!-- DROPDOWN ECRAN -->
+                        <div class="col-md-4">
+                            <RadzenFormField Text="Configuration Écran *" Style="width: 100%;">
+                                <RadzenDropDown Data="@ecransList"
+                                                TextProperty="Name"
+                                                ValueProperty="Id"
+                                                @bind-Value="@machine.EcranId"
+                                                Placeholder="Choisir un Écran..."
+                                                Style="width: 100%;" />
+                            </RadzenFormField>
+                            @if (machine.EcranId <= 0 && isSubmitted)
+                            {
+                                <span class="text-danger fs-7 d-block mt-1">L'écran est requis.</span>
+                            }
+                        </div>
+                    </div>
+                </RadzenFieldset>
+
+                <!-- SECTION 4 : ADRESSAGE RÉSEAU -->
+                <RadzenFieldset Text="Réseau & Adressage IP" Icon="lan">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <RadzenFormField Text="Adresse IP Interne (LAN)" Style="width: 100%;">
+                                <RadzenTextBox @bind-Value="@machine.AdresseIpInterne" Placeholder="192.168.x.x ou 10.x.x.x" Style="width: 100%;" />
+                            </RadzenFormField>
+                        </div>
+
+                        <div class="col-md-6">
+                            <RadzenFormField Text="Adresse IP Externe / Passerelle" Style="width: 100%;">
+                                <RadzenTextBox @bind-Value="@machine.AdresseIpExterne" Placeholder="Passerelle industrielle" Style="width: 100%;" />
+                            </RadzenFormField>
+                        </div>
+                    </div>
+                </RadzenFieldset>
+
+                <!-- SECTION 5 : POLITIQUE DE SAUVEGARDE -->
+                <RadzenFieldset Text="Sauvegarde & Continuité (Backup)" Icon="backup">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-6">
+                            <label class="mb-2 d-block text-muted text-xs text-uppercase fw-semibold">Statut du Plan de Sauvegarde</label>
+                            <RadzenToggleButton @bind-Value="@machine.Bukup"
+                                                Text="@(machine.Bukup ? "Sauvegarde Active" : "Sauvegarde Inactive")"
+                                                Icon="@(machine.Bukup ? "check_circle" : "cancel")"
+                                                ButtonStyle="@(machine.Bukup ? ButtonStyle.Success : ButtonStyle.Light)"
+                                                Style="width: 100%; height: 42px;" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <RadzenFormField Text="Dernière Date de Sauvegarde" Style="width: 100%;">
+                                <RadzenDatePicker @bind-Value="@selectedDateBukup"
+                                                  DateFormat="dd/MM/yyyy"
+                                                  Disabled="@(!machine.Bukup)"
+                                                  Placeholder="Date de sauvegarde"
+                                                  Style="width: 100%;" />
+                            </RadzenFormField>
+                        </div>
+                    </div>
+                </RadzenFieldset>
+
+                <!-- BARRE D'ACTIONS -->
+                <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-2">
+                    <RadzenButton Text="Annuler les modifications" Icon="close" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Click="@GoBack" />
+                    <RadzenButton Text="@(isEdit ? "Mettre à jour l'équipement" : "Enregistrer la machine")"
+                                  Icon="save"
+                                  ButtonStyle="ButtonStyle.Primary"
+                                  ButtonType="ButtonType.Submit"
+                                  IsBusy="@isLoading"
+                                  BusyText="Enregistrement..." />
                 </div>
-            </RadzenFieldset>
 
-            <!-- SECTION 3 : LISTES DÉROULANTES (SITE, OS, ECRAN) -->
-            <RadzenFieldset Text="Configuration Matérielle & Emplacement" Icon="settings">
-                <div class="row g-3">
-                    <!-- DROPDOWN SITE -->
-                    <div class="col-md-4">
-                        <RadzenFormField Text="Site / Emplacement *" Style="width: 100%;">
-                            <RadzenDropDown Data="@sitesList"
-                                            TextProperty="Name"
-                                            ValueProperty="Id"
-                                            @bind-Value="@machine.SiteId"
-                                            Placeholder="Sélectionner un Site"
-                                            Style="width: 100%;" />
-                        </RadzenFormField>
-                    </div>
-
-                    <!-- DROPDOWN OS -->
-                    <div class="col-md-4">
-                        <RadzenFormField Text="Système d'Exploitation (OS) *" Style="width: 100%;">
-                            <RadzenDropDown Data="@osList"
-                                            TextProperty="Name"
-                                            ValueProperty="Id"
-                                            @bind-Value="@machine.OSId"
-                                            Placeholder="Sélectionner un OS"
-                                            Style="width: 100%;" />
-                        </RadzenFormField>
-                    </div>
-
-                    <!-- DROPDOWN ECRAN -->
-                    <div class="col-md-4">
-                        <RadzenFormField Text="Type d'Écran *" Style="width: 100%;">
-                            <RadzenDropDown Data="@ecransList"
-                                            TextProperty="Name"
-                                            ValueProperty="Id"
-                                            @bind-Value="@machine.EcranId"
-                                            Placeholder="Sélectionner un Écran"
-                                            Style="width: 100%;" />
-                        </RadzenFormField>
-                    </div>
-                </div>
-            </RadzenFieldset>
-
-            <!-- SECTION 4 : RESEAU -->
-            <RadzenFieldset Text="Réseau & IP" Icon="lan">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <RadzenFormField Text="Adresse IP Interne" Style="width: 100%;">
-                            <RadzenTextBox @bind-Value="@machine.AdresseIpInterne" Style="width: 100%;" />
-                        </RadzenFormField>
-                    </div>
-
-                    <div class="col-md-6">
-                        <RadzenFormField Text="Adresse IP Externe" Style="width: 100%;">
-                            <RadzenTextBox @bind-Value="@machine.AdresseIpExterne" Style="width: 100%;" />
-                        </RadzenFormField>
-                    </div>
-                </div>
-            </RadzenFieldset>
-
-            <!-- SECTION 5 : SAUVEGARDE (BACKUP) -->
-            <RadzenFieldset Text="Sauvegarde (Backup)" Icon="backup">
-                <div class="row g-3 align-items-center">
-                    <div class="col-md-6">
-                        <label class="rz-mb-2 d-block text-muted">Statut de la Sauvegarde</label>
-                        <RadzenToggleButton @bind-Value="@machine.Bukup"
-                                            Text="@(machine.Bukup ? " Backup Activé" : " Backup Désactivé")"
-                                            Icon="@(machine.Bukup ? "check_circle" : "highlight_off")"
-                                            ButtonStyle="@(machine.Bukup ? ButtonStyle.Success : ButtonStyle.Danger)"
-                                            Style="width: 100%; height: 42px;" />
-                    </div>
-
-                    <div class="col-md-6">
-                        <RadzenFormField Text="Dernière Date de Backup" Style="width: 100%;">
-                            <RadzenDatePicker @bind-Value="@selectedDateBukup"
-                                              DateFormat="dd/MM/yyyy"
-                                              Disabled="@(!machine.Bukup)"
-                                              Style="width: 100%;" />
-                        </RadzenFormField>
-                    </div>
-                </div>
-            </RadzenFieldset>
-
-            <!-- BOUTONS D'ACTION -->
-            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1rem" Class="mt-3">
-                <RadzenButton Text="Annuler" ButtonStyle="ButtonStyle.Light" Click="@GoBack" />
-                <RadzenButton Text="@(isEdit ? "Mettre à jour" : "Enregistrer")"
-                              Icon="save"
-                              ButtonStyle="ButtonStyle.Primary"
-                              ButtonType="ButtonType.Submit"
-                              IsBusy="@isLoading" />
             </RadzenStack>
-
-        </RadzenStack>
-    </RadzenTemplateForm>
-</RadzenCard>
+        </RadzenTemplateForm>
+    </RadzenCard>
+</div>
 
 @code {
     [Parameter] public string? CodeParam { get; set; }

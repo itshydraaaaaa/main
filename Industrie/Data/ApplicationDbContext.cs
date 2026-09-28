@@ -1,4 +1,4 @@
-﻿using Industrie.Models;
+using Industrie.Models;
 using Industrie.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -39,18 +39,21 @@ namespace Industrie.Data
                       .HasConversion(passwordConverter)
                       .IsRequired();
 
-                // Configuration des relations
+                // Configuration des relations avec protection contre la suppression en cascade
                 entity.HasOne(m => m.TypeOS)
                       .WithMany()
-                      .HasForeignKey(m => m.OSId);
+                      .HasForeignKey(m => m.OSId)
+                      .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(m => m.TypeEcran)
                       .WithMany()
-                      .HasForeignKey(m => m.EcranId);
+                      .HasForeignKey(m => m.EcranId)
+                      .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(m => m.Site)
                       .WithMany()
-                      .HasForeignKey(m => m.SiteId);
+                      .HasForeignKey(m => m.SiteId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

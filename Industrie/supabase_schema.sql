@@ -32,9 +32,9 @@ CREATE TABLE IF NOT EXISTS public."Machines" (
     "AdresseIpInterne" TEXT NOT NULL DEFAULT '',
     "Bukup" BOOLEAN NOT NULL DEFAULT FALSE,
     "DateBukup" DATE NOT NULL DEFAULT CURRENT_DATE,
-    "EcranId" INTEGER NOT NULL REFERENCES public."Ecrans"("Id") ON DELETE CASCADE,
-    "OSId" INTEGER NOT NULL REFERENCES public."OSList"("Id") ON DELETE CASCADE,
-    "SiteId" INTEGER NOT NULL REFERENCES public."Sites"("Id") ON DELETE CASCADE
+    "EcranId" INTEGER NOT NULL REFERENCES public."Ecrans"("Id") ON DELETE RESTRICT,
+    "OSId" INTEGER NOT NULL REFERENCES public."OSList"("Id") ON DELETE RESTRICT,
+    "SiteId" INTEGER NOT NULL REFERENCES public."Sites"("Id") ON DELETE RESTRICT
 );
 
 -- Indexation des clés étrangères pour optimiser les requêtes LINQ / EF Core

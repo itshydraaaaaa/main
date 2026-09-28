@@ -1,9 +1,11 @@
-﻿using System.DirectoryServices.AccountManagement;
+using System.DirectoryServices.AccountManagement;
+using System.Runtime.Versioning;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 
 namespace Industrie.Services
 {
+    [SupportedOSPlatform("windows")]
     public class ActiveDirectoryService
     {
         private const string GroupeResponsable = "QRQCRESPONSABLE";
@@ -83,33 +85,40 @@ namespace Industrie.Services
 
                 foreach (var groupName in groups)
                 {
-                    var group = GroupPrincipal.FindByIdentity(context, groupName);
+                    using var group = GroupPrincipal.FindByIdentity(context, groupName);
                     if (group == null) continue;
 
-                    foreach (var member in group.GetMembers(recursive: true))
+                    using var members = group.GetMembers(recursive: true);
+                    foreach (var member in members)
                     {
-                        if (member is not UserPrincipal user) continue;
+                        try
+                        {
+                            if (member is not UserPrincipal user) continue;
 
-                        var username = user.SamAccountName ?? user.Name ?? string.Empty;
+                            var username = user.SamAccountName ?? user.Name ?? string.Empty;
 
-                        // Éviter les doublons si un utilisateur est dans plusieurs groupes
-                        if (result.Any(r => r.Username == username)) continue;
+                            // Éviter les doublons si un utilisateur est dans plusieurs groupes
+                            if (result.Any(r => r.Username == username)) continue;
 
-                        result.Add(new AdUser(
-                            Username: username,
-                            DisplayName: !string.IsNullOrWhiteSpace(user.DisplayName)
-                                            ? user.DisplayName
-                                            : user.Name ?? username,
-                            Email: user.EmailAddress,
-                            Group: groupName
-                        ));
+                            result.Add(new AdUser(
+                                Username: username,
+                                DisplayName: !string.IsNullOrWhiteSpace(user.DisplayName)
+                                                ? user.DisplayName
+                                                : user.Name ?? username,
+                                Email: user.EmailAddress,
+                                Group: groupName
+                            ));
+                        }
+                        finally
+                        {
+                            member.Dispose();
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                // Journaliser si un ILogger est injecté — silencieux pour l'instant
-                _ = ex;
+                _logger.LogWarning(ex, "ActiveDirectoryService: impossible de contacter le contrôleur de domaine (mode hors ligne ou environnement local).");
             }
 
             return result.OrderBy(u => u.DisplayName).ToList();

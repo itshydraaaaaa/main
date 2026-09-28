@@ -1,4 +1,4 @@
-﻿@page "/parametrage"
+@page "/parametrage"
 
 @using Industrie.Models
 @using Industrie.Services
@@ -17,56 +17,64 @@
 <!-- Loader visible pendant le chargement -->
 @if (isLoading)
 {
-    <div class="text-center my-5">
-        <RadzenLoader />
-        <p class="mt-3">Chargement des données...</p>
+    <div class="d-flex flex-column justify-content-center align-items-center my-5 py-5" style="min-height: 350px;">
+        <RadzenProgressBar Value="100" Mode="ProgressBarMode.Indeterminate" Style="width: 40%; height: 6px;" Class="mb-3" />
+        <span class="text-muted small">Chargement des données en cours...</span>
     </div>
 }
 else
 {
     <!-- Statistiques rapides -->
-    <div class="row mb-4">
-        <div class="col-md-3 col-sm-6 mb-3">
-            <RadzenCard Class="rz-background-primary-light">
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <RadzenCard Class="kpi-card" Style="border-left: 4px solid var(--brand-pharma-blue);">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted">Total Sites</span>
-                        <h3 class="mb-0 text-primary">@sitesList.Count</h3>
+                        <span class="text-muted text-xs text-uppercase fw-semibold">Total Sites</span>
+                        <h3 class="mb-0 fw-bold" style="color: var(--brand-pharma-blue);">@sitesList.Count</h3>
                     </div>
-                    <RadzenIcon Icon="place" Style="font-size: 2.5rem;" Class="text-primary" />
+                    <div class="p-2 rounded-3" style="background-color: rgba(25, 103, 190, 0.1); color: var(--brand-pharma-blue);">
+                        <RadzenIcon Icon="place" Style="font-size: 1.75rem;" />
+                    </div>
                 </div>
             </RadzenCard>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <RadzenCard Class="rz-background-info-light">
+        <div class="col-md-3 col-sm-6">
+            <RadzenCard Class="kpi-card" Style="border-left: 4px solid var(--brand-info);">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted">Total Écrans</span>
-                        <h3 class="mb-0 text-info">@ecransList.Count</h3>
+                        <span class="text-muted text-xs text-uppercase fw-semibold">Total Écrans</span>
+                        <h3 class="mb-0 fw-bold text-info">@ecransList.Count</h3>
                     </div>
-                    <RadzenIcon Icon="tv" Style="font-size: 2.5rem;" Class="text-info" />
+                    <div class="p-2 rounded-3" style="background-color: rgba(6, 182, 212, 0.1); color: var(--brand-info);">
+                        <RadzenIcon Icon="tv" Style="font-size: 1.75rem;" />
+                    </div>
                 </div>
             </RadzenCard>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <RadzenCard Class="rz-background-success-light">
+        <div class="col-md-3 col-sm-6">
+            <RadzenCard Class="kpi-card" Style="border-left: 4px solid var(--brand-success);">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted">Total OS</span>
-                        <h3 class="mb-0 text-success">@osList.Count</h3>
+                        <span class="text-muted text-xs text-uppercase fw-semibold">Total OS</span>
+                        <h3 class="mb-0 fw-bold text-success">@osList.Count</h3>
                     </div>
-                    <RadzenIcon Icon="memory" Style="font-size: 2.5rem;" Class="text-success" />
+                    <div class="p-2 rounded-3" style="background-color: rgba(34, 197, 94, 0.1); color: var(--brand-success);">
+                        <RadzenIcon Icon="memory" Style="font-size: 1.75rem;" />
+                    </div>
                 </div>
             </RadzenCard>
         </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <RadzenCard Class="rz-background-warning-light">
+        <div class="col-md-3 col-sm-6">
+            <RadzenCard Class="kpi-card" Style="border-left: 4px solid var(--brand-warning);">
                 <div class="d-flex align-items-center justify-content-between">
                     <div>
-                        <span class="text-muted">Total Machines</span>
-                        <h3 class="mb-0 text-warning">@machinesList.Count</h3>
+                        <span class="text-muted text-xs text-uppercase fw-semibold">Total Machines</span>
+                        <h3 class="mb-0 fw-bold text-warning">@machinesList.Count</h3>
                     </div>
-                    <RadzenIcon Icon="precision_manufacturing" Style="font-size: 2.5rem;" Class="text-warning" />
+                    <div class="p-2 rounded-3" style="background-color: rgba(245, 158, 11, 0.1); color: var(--brand-warning);">
+                        <RadzenIcon Icon="precision_manufacturing" Style="font-size: 1.75rem;" />
+                    </div>
                 </div>
             </RadzenCard>
         </div>
@@ -78,27 +86,40 @@ else
             <!-- ONGLET 1 : SITES -->
             <RadzenTabsItem Text="Sites / Emplacements" Icon="place">
                 <div class="my-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Liste des Sites (@sitesList.Count)</h5>
+                    <h5 class="mb-0 fw-semibold">Liste des Sites (@sitesList.Count)</h5>
                     <RadzenButton Icon="add_circle" Text="Nouveau Site" ButtonStyle="ButtonStyle.Primary" Click="@(() => OpenSiteDialog(new Site()))" />
                 </div>
 
-                <RadzenDataGrid Data="@sitesList" TItem="Site" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="8" Class="rz-shadow-2">
+                <RadzenDataGrid Data="@sitesList" TItem="Site" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="8" Class="rz-shadow-1">
                     <Columns>
                         <RadzenDataGridColumn Property="Id" Title="ID" Width="80px" />
                         <RadzenDataGridColumn Property="Name" Title="Nom du Site">
                             <Template Context="site">
-                                <strong>@site.Name</strong>
+                                <div class="d-flex align-items-center gap-2">
+                                    <RadzenIcon Icon="place" Style="font-size: 1.1rem;" Class="text-muted" />
+                                    <strong class="text-dark">@site.Name</strong>
+                                </div>
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn Title="Machines Associées" Width="180px" TextAlign="TextAlign.Center">
                             <Template Context="site">
-                                <RadzenBadge BadgeStyle="BadgeStyle.Primary" Text="@($"{machinesCountBySite.GetValueOrDefault(site.Id, 0)} machine(s)")" IsPill="true" />
+                                @{
+                                    var count = machinesCountBySite.GetValueOrDefault(site.Id, 0);
+                                }
+                                <RadzenBadge BadgeStyle="@(count > 0 ? BadgeStyle.Primary : BadgeStyle.Light)" Text="@($"{count} machine(s)")" IsPill="true" />
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Width="140px" TextAlign="TextAlign.Center">
                             <Template Context="site">
-                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Warning" Size="ButtonSize.Small" Class="me-1" Click="@(() => OpenSiteDialog(site))" />
-                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => ConfirmDeleteSiteAsync(site))" />
+                                @{
+                                    var count = machinesCountBySite.GetValueOrDefault(site.Id, 0);
+                                    var hasMachines = count > 0;
+                                }
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Warning" Size="ButtonSize.Small" Class="me-1" Click="@(() => OpenSiteDialog(site))" Title="Modifier ce site" />
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small"
+                                              Disabled="@hasMachines"
+                                              Title="@(hasMachines ? $"Suppression impossible : {count} machine(s) associée(s)" : "Supprimer ce site")"
+                                              Click="@(() => ConfirmDeleteSiteAsync(site))" />
                             </Template>
                         </RadzenDataGridColumn>
                     </Columns>
@@ -113,27 +134,40 @@ else
             <!-- ONGLET 2 : ÉCRANS -->
             <RadzenTabsItem Text="Types d'Écran" Icon="tv">
                 <div class="my-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Catalogue des Écrans (@ecransList.Count)</h5>
+                    <h5 class="mb-0 fw-semibold">Catalogue des Écrans (@ecransList.Count)</h5>
                     <RadzenButton Icon="add_circle" Text="Nouvel Écran" ButtonStyle="ButtonStyle.Info" Click="@(() => OpenEcranDialog(new Ecran()))" />
                 </div>
 
-                <RadzenDataGrid Data="@ecransList" TItem="Ecran" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="8" Class="rz-shadow-2">
+                <RadzenDataGrid Data="@ecransList" TItem="Ecran" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="8" Class="rz-shadow-1">
                     <Columns>
                         <RadzenDataGridColumn Property="Id" Title="ID" Width="80px" />
                         <RadzenDataGridColumn Property="Name" Title="Désignation de l'Écran">
                             <Template Context="ecran">
-                                <strong>@ecran.Name</strong>
+                                <div class="d-flex align-items-center gap-2">
+                                    <RadzenIcon Icon="tv" Style="font-size: 1.1rem;" Class="text-muted" />
+                                    <strong class="text-dark">@ecran.Name</strong>
+                                </div>
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn Title="Machines Associées" Width="180px" TextAlign="TextAlign.Center">
                             <Template Context="ecran">
-                                <RadzenBadge BadgeStyle="BadgeStyle.Info" Text="@($"{machinesCountByEcran.GetValueOrDefault(ecran.Id, 0)} machine(s)")" IsPill="true" />
+                                @{
+                                    var count = machinesCountByEcran.GetValueOrDefault(ecran.Id, 0);
+                                }
+                                <RadzenBadge BadgeStyle="@(count > 0 ? BadgeStyle.Info : BadgeStyle.Light)" Text="@($"{count} machine(s)")" IsPill="true" />
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Width="140px" TextAlign="TextAlign.Center">
                             <Template Context="ecran">
-                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Warning" Size="ButtonSize.Small" Class="me-1" Click="@(() => OpenEcranDialog(ecran))" />
-                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => ConfirmDeleteEcranAsync(ecran))" />
+                                @{
+                                    var count = machinesCountByEcran.GetValueOrDefault(ecran.Id, 0);
+                                    var hasMachines = count > 0;
+                                }
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Warning" Size="ButtonSize.Small" Class="me-1" Click="@(() => OpenEcranDialog(ecran))" Title="Modifier cet écran" />
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small"
+                                              Disabled="@hasMachines"
+                                              Title="@(hasMachines ? $"Suppression impossible : {count} machine(s) associée(s)" : "Supprimer cet écran")"
+                                              Click="@(() => ConfirmDeleteEcranAsync(ecran))" />
                             </Template>
                         </RadzenDataGridColumn>
                     </Columns>
@@ -148,27 +182,40 @@ else
             <!-- ONGLET 3 : OS -->
             <RadzenTabsItem Text="Systèmes d'Exploitation (OS)" Icon="memory">
                 <div class="my-3 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Catalogue des OS (@osList.Count)</h5>
+                    <h5 class="mb-0 fw-semibold">Catalogue des OS (@osList.Count)</h5>
                     <RadzenButton Icon="add_circle" Text="Ajouter un OS" ButtonStyle="ButtonStyle.Success" Click="@(() => OpenOSDialog(new OS()))" />
                 </div>
 
-                <RadzenDataGrid Data="@osList" TItem="OS" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="8" Class="rz-shadow-2">
+                <RadzenDataGrid Data="@osList" TItem="OS" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="8" Class="rz-shadow-1">
                     <Columns>
                         <RadzenDataGridColumn Property="Id" Title="ID" Width="80px" />
                         <RadzenDataGridColumn Property="Name" Title="Nom du Système d'Exploitation">
                             <Template Context="os">
-                                <strong>@os.Name</strong>
+                                <div class="d-flex align-items-center gap-2">
+                                    <RadzenIcon Icon="memory" Style="font-size: 1.1rem;" Class="text-muted" />
+                                    <strong class="text-dark">@os.Name</strong>
+                                </div>
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn Title="Machines Associées" Width="180px" TextAlign="TextAlign.Center">
                             <Template Context="os">
-                                <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@($"{machinesCountByOS.GetValueOrDefault(os.Id, 0)} machine(s)")" IsPill="true" />
+                                @{
+                                    var count = machinesCountByOS.GetValueOrDefault(os.Id, 0);
+                                }
+                                <RadzenBadge BadgeStyle="@(count > 0 ? BadgeStyle.Success : BadgeStyle.Light)" Text="@($"{count} machine(s)")" IsPill="true" />
                             </Template>
                         </RadzenDataGridColumn>
                         <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Width="140px" TextAlign="TextAlign.Center">
                             <Template Context="os">
-                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Warning" Size="ButtonSize.Small" Class="me-1" Click="@(() => OpenOSDialog(os))" />
-                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => ConfirmDeleteOSAsync(os))" />
+                                @{
+                                    var count = machinesCountByOS.GetValueOrDefault(os.Id, 0);
+                                    var hasMachines = count > 0;
+                                }
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Warning" Size="ButtonSize.Small" Class="me-1" Click="@(() => OpenOSDialog(os))" Title="Modifier cet OS" />
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small"
+                                              Disabled="@hasMachines"
+                                              Title="@(hasMachines ? $"Suppression impossible : {count} machine(s) associée(s)" : "Supprimer cet OS")"
+                                              Click="@(() => ConfirmDeleteOSAsync(os))" />
                             </Template>
                         </RadzenDataGridColumn>
                     </Columns>

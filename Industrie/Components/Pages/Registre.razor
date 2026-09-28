@@ -1,4 +1,4 @@
-﻿@page "/machines"
+@page "/machines"
 
 @using Industrie.Models
 @using Industrie.Services
@@ -6,6 +6,7 @@
 @inject NotificationService NotificationService
 @inject DialogService DialogService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Policy = "Responsable")]
@@ -13,26 +14,31 @@
 <PageTitle>Registre des Machines</PageTitle>
 
 <!-- EN-TÊTE DE PAGE -->
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
-        <h3 class="m-0 text-primary font-weight-bold">
-            <RadzenIcon Icon="precision_manufacturing" Class="me-2" />Registre des Machines
+        <h3 class="m-0 text-primary fw-bold d-flex align-items-center">
+            <RadzenIcon Icon="precision_manufacturing" Class="me-2 text-primary" />Registre des Machines
         </h3>
-        <span class="text-muted">Gestion et suivi en temps réel des équipements industriels</span>
+        <span class="text-muted small">Inventaire et suivi de conformité opérationnelle en temps réel</span>
     </div>
-    <RadzenButton Icon="add_circle" Text="Nouvelle Machine" ButtonStyle="ButtonStyle.Primary" Click="@(() => NavigationManager.NavigateTo("/machines/form"))" />
+    <div class="d-flex gap-2">
+        <RadzenButton Icon="refresh" Text="Actualiser" ButtonStyle="ButtonStyle.Light" Click="@LoadDataAsync" IsBusy="@isLoading" Class="shadow-sm" />
+        <RadzenButton Icon="add_circle" Text="Nouvelle Machine" ButtonStyle="ButtonStyle.Primary" Click="@(() => NavigationManager.NavigateTo("/machines/form"))" Class="shadow-sm" />
+    </div>
 </div>
 
-<!-- BARRE DE FILTRES HORS TABLEAU -->
-<RadzenCard Class="rz-shadow-2 mb-4 p-3 rz-background-white">
-    <div class="d-flex justify-content-between align-items-center mb-2">
-        <strong class="text-muted"><RadzenIcon Icon="filter_alt" Class="me-1" />Filtres de recherche</strong>
+<!-- BARRE DE FILTRES RESPONSIVE -->
+<RadzenCard Class="rz-shadow-sm mb-4 p-3 bg-white">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="fw-bold text-dark d-flex align-items-center small text-uppercase">
+            <RadzenIcon Icon="filter_alt" Class="me-1 text-primary" />Filtres de recherche avancés
+        </span>
         <RadzenButton Icon="restart_alt" Text="Réinitialiser" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="@ResetFilters" />
     </div>
 
-    <div class="row g-2">
-        <!-- SEARCH TEXTBOX -->
-        <div class="col-md-3">
+    <div class="row g-2 align-items-center">
+        <!-- RECHERCHE GLOBALE -->
+        <div class="col-lg-3 col-md-6 col-12">
             <RadzenFormField Text="Recherche globale" Style="width: 100%;">
                 <RadzenTextBox Value="@searchTerm"
                                @oninput="@(args => { searchTerm = args.Value?.ToString() ?? string.Empty; })"
@@ -41,48 +47,48 @@
             </RadzenFormField>
         </div>
 
-        <!-- DROPDOWN SITE -->
-        <div class="col-md-2">
+        <!-- SITE -->
+        <div class="col-lg-2 col-md-3 col-6">
             <RadzenFormField Text="Site / Emplacement" Style="width: 100%;">
                 <RadzenDropDown Data="@sitesList"
                                 TextProperty="Name"
                                 ValueProperty="Id"
                                 @bind-Value="@selectedSiteId"
                                 AllowClear="true"
-                                Placeholder="Tous les sites"
+                                Placeholder="Tous"
                                 Style="width: 100%;" />
             </RadzenFormField>
         </div>
 
-        <!-- DROPDOWN OS -->
-        <div class="col-md-2">
+        <!-- OS -->
+        <div class="col-lg-2 col-md-3 col-6">
             <RadzenFormField Text="Système (OS)" Style="width: 100%;">
                 <RadzenDropDown Data="@osList"
                                 TextProperty="Name"
                                 ValueProperty="Id"
                                 @bind-Value="@selectedOSId"
                                 AllowClear="true"
-                                Placeholder="Tous les OS"
+                                Placeholder="Tous"
                                 Style="width: 100%;" />
             </RadzenFormField>
         </div>
 
-        <!-- DROPDOWN ECRAN -->
-        <div class="col-md-2">
+        <!-- ECRAN -->
+        <div class="col-lg-2 col-md-6 col-6">
             <RadzenFormField Text="Type d'Écran" Style="width: 100%;">
                 <RadzenDropDown Data="@ecransList"
                                 TextProperty="Name"
                                 ValueProperty="Id"
                                 @bind-Value="@selectedEcranId"
                                 AllowClear="true"
-                                Placeholder="Tous les écrans"
+                                Placeholder="Tous"
                                 Style="width: 100%;" />
             </RadzenFormField>
         </div>
 
-        <!-- DROPDOWN BACKUP -->
-        <div class="col-md-3">
-            <RadzenFormField Text="Statut Backup" Style="width: 100%;">
+        <!-- BACKUP -->
+        <div class="col-lg-3 col-md-6 col-6">
+            <RadzenFormField Text="Statut Sauvegarde" Style="width: 100%;">
                 <RadzenDropDown Data="@backupOptions"
                                 TextProperty="Text"
                                 ValueProperty="Value"
@@ -96,10 +102,10 @@
 </RadzenCard>
 
 <!-- TABLEAU DU REGISTRE -->
-<RadzenCard Class="rz-shadow-3">
-    <div class="mb-2 d-flex justify-content-between align-items-center">
-        <span class="badge bg-light text-dark border">
-            Résultats : <strong>@FilteredMachines.Count()</strong> machine(s) trouvée(s)
+<RadzenCard Class="rz-shadow-sm p-3">
+    <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+            Inventaire : <strong>@FilteredMachines.Count()</strong> machine(s) filtrée(s) sur un total de <strong>@machinesList.Count</strong>
         </span>
     </div>
 
@@ -111,24 +117,24 @@
                     PagerHorizontalAlign="HorizontalAlign.Left"
                     ShowPagingSummary="true"
                     IsLoading="@isLoading"
-                    Class="rz-grid-table">
+                    Class="rz-data-grid">
         <Columns>
 
             <!-- CODE -->
             <RadzenDataGridColumn Property="Code" Title="Code" Width="120px">
                 <Template Context="m">
-                    <RadzenBadge BadgeStyle="BadgeStyle.Dark" Text="@m.Code" Class="w-100 text-center" />
+                    <RadzenBadge BadgeStyle="BadgeStyle.Dark" Text="@m.Code" Class="w-100 text-center shadow-xs" />
                 </Template>
             </RadzenDataGridColumn>
 
             <!-- DESIGNATION & PC NAME -->
-            <RadzenDataGridColumn Property="Name" Title="Désignation & PC">
+            <RadzenDataGridColumn Property="Name" Title="Désignation & PC" Width="200px">
                 <Template Context="m">
                     <div class="d-flex flex-column">
                         <strong class="text-primary">@m.Name</strong>
                         @if (!string.IsNullOrWhiteSpace(m.PcName))
                         {
-                            <small class="text-muted"><RadzenIcon Icon="desktop_windows" Style="font-size: 12px;" /> @m.PcName</small>
+                            <small class="text-muted"><RadzenIcon Icon="desktop_windows" Style="font-size: 11px;" Class="me-1" />@m.PcName</small>
                         }
                     </div>
                 </Template>
@@ -137,57 +143,77 @@
             <!-- SITE -->
             <RadzenDataGridColumn Property="Site.Name" Title="Site" Width="140px">
                 <Template Context="m">
-                    <RadzenBadge BadgeStyle="BadgeStyle.Primary" Text="@(m.Site?.Name ?? "N/A")" IsPill="true" />
+                    <RadzenBadge BadgeStyle="BadgeStyle.Primary" Text="@(m.Site?.Name ?? "Non défini")" IsPill="true" />
                 </Template>
             </RadzenDataGridColumn>
 
             <!-- OS -->
-            <RadzenDataGridColumn Property="TypeOS.Name" Title="OS" Width="130px">
+            <RadzenDataGridColumn Property="TypeOS.Name" Title="OS" Width="140px">
                 <Template Context="m">
-                    <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@(m.TypeOS?.Name ?? "N/A")" IsPill="true" />
+                    <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@(m.TypeOS?.Name ?? "Non défini")" IsPill="true" />
                 </Template>
             </RadzenDataGridColumn>
 
             <!-- ECRAN -->
-            <RadzenDataGridColumn Property="TypeEcran.Name" Title="Écran" Width="140px">
+            <RadzenDataGridColumn Property="TypeEcran.Name" Title="Écran" Width="150px">
                 <Template Context="m">
-                    <RadzenBadge BadgeStyle="BadgeStyle.Info" Text="@(m.TypeEcran?.Name ?? "N/A")" IsPill="true" />
+                    <RadzenBadge BadgeStyle="BadgeStyle.Info" Text="@(m.TypeEcran?.Name ?? "Non défini")" IsPill="true" />
                 </Template>
             </RadzenDataGridColumn>
 
-            <!-- SESSION ET MDP AVEC BOUTON VISIONNEUR -->
-            <RadzenDataGridColumn Property="Session" Title="Session & Mdp" Width="190px" Sortable="false">
+            <!-- SESSION & MDP (AVEC CHIFFREMENT AES-GCM & COPIE) -->
+            <RadzenDataGridColumn Property="Session" Title="Session & Mdp" Width="220px" Sortable="false">
                 <Template Context="m">
                     <div>
-                        <small class="d-block text-muted">User: <strong>@(string.IsNullOrWhiteSpace(m.Session) ? "-" : m.Session)</strong></small>
+                        <small class="d-block text-muted">Compte : <strong>@(string.IsNullOrWhiteSpace(m.Session) ? "-" : m.Session)</strong></small>
                         <div class="d-flex align-items-center gap-1 mt-1">
-                            <span class="font-monospace text-truncate bg-light border px-2 py-1 rounded" style="max-width: 110px; font-size: 0.85rem;">
-                                @(IsPasswordVisible(m.Code) ? m.Mdp : "••••••••")
-                            </span>
+                            @if (IsPasswordVisible(m.Code))
+                            {
+                                @if (m.Mdp.StartsWith("[Erreur"))
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="@m.Mdp" />
+                                }
+                                else
+                                {
+                                    <span class="password-box text-truncate" style="max-width: 120px;" title="@m.Mdp">
+                                        @m.Mdp
+                                    </span>
+                                    <RadzenButton Icon="content_copy"
+                                                  Size="ButtonSize.ExtraSmall"
+                                                  ButtonStyle="ButtonStyle.Light"
+                                                  Click="@(() => CopyToClipboard(m.Mdp))"
+                                                  ToolTip="Copier le mot de passe" />
+                                }
+                            }
+                            else
+                            {
+                                <span class="password-box text-muted">••••••••</span>
+                            }
+
                             <RadzenButton Icon="@(IsPasswordVisible(m.Code) ? "visibility_off" : "visibility")"
                                           Size="ButtonSize.ExtraSmall"
                                           ButtonStyle="@(IsPasswordVisible(m.Code) ? ButtonStyle.Warning : ButtonStyle.Light)"
                                           Click="@(() => TogglePasswordVisibility(m.Code))"
-                                          ToolTip="@(IsPasswordVisible(m.Code) ? "Masquer le mot de passe" : "Afficher le mot de passe")" />
+                                          ToolTip="@(IsPasswordVisible(m.Code) ? "Masquer" : "Afficher")" />
                         </div>
                     </div>
                 </Template>
             </RadzenDataGridColumn>
 
             <!-- ADRESSES IP -->
-            <RadzenDataGridColumn Property="AdresseIpInterne" Title="Réseau IP" Width="170px">
+            <RadzenDataGridColumn Property="AdresseIpInterne" Title="Réseau IP" Width="160px">
                 <Template Context="m">
-                    <small class="d-block"><strong>Int:</strong> @(string.IsNullOrWhiteSpace(m.AdresseIpInterne) ? "-" : m.AdresseIpInterne)</small>
-                    <small class="d-block text-muted"><strong>Ext:</strong> @(string.IsNullOrWhiteSpace(m.AdresseIpExterne) ? "-" : m.AdresseIpExterne)</small>
+                    <small class="d-block"><strong>Int :</strong> @(string.IsNullOrWhiteSpace(m.AdresseIpInterne) ? "-" : m.AdresseIpInterne)</small>
+                    <small class="d-block text-muted"><strong>Ext :</strong> @(string.IsNullOrWhiteSpace(m.AdresseIpExterne) ? "-" : m.AdresseIpExterne)</small>
                 </Template>
             </RadzenDataGridColumn>
 
             <!-- BACKUP -->
-            <RadzenDataGridColumn Property="Bukup" Title="Backup" Width="140px" TextAlign="TextAlign.Center">
+            <RadzenDataGridColumn Property="Bukup" Title="Backup" Width="130px" TextAlign="TextAlign.Center">
                 <Template Context="m">
                     @if (m.Bukup)
                     {
-                        <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="Oui" IsPill="true" />
+                        <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="Actif" IsPill="true" />
                         <br />
                         <small class="text-muted font-monospace" style="font-size: 0.75rem;">
                             @m.DateBukup.ToString("dd/MM/yyyy")
@@ -195,7 +221,7 @@
                     }
                     else
                     {
-                        <RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="Non" IsPill="true" />
+                        <RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="Inactif" IsPill="true" />
                     }
                 </Template>
             </RadzenDataGridColumn>
@@ -218,6 +244,13 @@
             </RadzenDataGridColumn>
 
         </Columns>
+        <EmptyTemplate>
+            <div class="text-center py-5 text-muted">
+                <RadzenIcon Icon="search_off" Style="font-size: 2.5rem;" Class="mb-2 text-muted" />
+                <h6>Aucune machine ne correspond aux critères sélectionnés.</h6>
+                <RadzenButton Text="Réinitialiser les filtres" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="@ResetFilters" Class="mt-2" />
+            </div>
+        </EmptyTemplate>
     </RadzenDataGrid>
 </RadzenCard>
 
@@ -230,18 +263,17 @@
     private HashSet<string> visiblePasswords = new();
     private bool isLoading = false;
 
-    // Variables des filtres externes
+    // Filtres
     private string searchTerm = string.Empty;
     private int? selectedSiteId;
     private int? selectedOSId;
     private int? selectedEcranId;
     private bool? selectedBackupFilter;
 
-    // Helper pour la liste déroulante des filtres Backup
     private readonly List<BackupOption> backupOptions = new()
     {
-        new BackupOption { Text = "Avec Backup (Oui)", Value = true },
-        new BackupOption { Text = "Sans Backup (Non)", Value = false }
+        new BackupOption { Text = "Sauvegardé (Actif)", Value = true },
+        new BackupOption { Text = "Non sauvegardé (Inactif)", Value = false }
     };
 
     protected override async Task OnInitializedAsync()
@@ -254,10 +286,17 @@
         isLoading = true;
         try
         {
-            sitesList = await MachineService.GetAllSitesAsync();
-            osList = await MachineService.GetAllOSAsync();
-            ecransList = await MachineService.GetAllEcransAsync();
-            machinesList = await MachineService.GetAllAsync();
+            var sitesTask = MachineService.GetAllSitesAsync();
+            var osTask = MachineService.GetAllOSAsync();
+            var ecransTask = MachineService.GetAllEcransAsync();
+            var machinesTask = MachineService.GetAllAsync();
+
+            await Task.WhenAll(sitesTask, osTask, ecransTask, machinesTask);
+
+            sitesList = await sitesTask;
+            osList = await osTask;
+            ecransList = await ecransTask;
+            machinesList = await machinesTask;
         }
         catch (Exception ex)
         {
@@ -269,14 +308,12 @@
         }
     }
 
-    // Propriété calculée appliquée au Datagrid pour le filtrage dynamique
     private IEnumerable<Machine> FilteredMachines
     {
         get
         {
             var query = machinesList.AsEnumerable();
 
-            // 1. Recherche globale (Recherche par Code, Nom, PcName ou IPs)
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 query = query.Where(m =>
@@ -288,25 +325,21 @@
                 );
             }
 
-            // 2. Filtre Site
             if (selectedSiteId.HasValue && selectedSiteId.Value > 0)
             {
                 query = query.Where(m => m.SiteId == selectedSiteId.Value);
             }
 
-            // 3. Filtre OS
             if (selectedOSId.HasValue && selectedOSId.Value > 0)
             {
                 query = query.Where(m => m.OSId == selectedOSId.Value);
             }
 
-            // 4. Filtre Écran
             if (selectedEcranId.HasValue && selectedEcranId.Value > 0)
             {
                 query = query.Where(m => m.EcranId == selectedEcranId.Value);
             }
 
-            // 5. Filtre Backup
             if (selectedBackupFilter.HasValue)
             {
                 query = query.Where(m => m.Bukup == selectedBackupFilter.Value);
@@ -335,6 +368,19 @@
 
     private bool IsPasswordVisible(string code) => visiblePasswords.Contains(code);
 
+    private async Task CopyToClipboard(string text)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            NotificationService.Notify(NotificationSeverity.Success, "Presse-papier", "Mot de passe copié !");
+        }
+        catch (Exception)
+        {
+            NotificationService.Notify(NotificationSeverity.Info, "Information", "Sélectionnez le mot de passe manuellement.");
+        }
+    }
+
     private async Task ConfirmDeleteAsync(Machine machine)
     {
         var confirm = await DialogService.Confirm(
@@ -348,7 +394,7 @@
             try
             {
                 await MachineService.DeleteMachineAsync(machine.Code);
-                NotificationService.Notify(NotificationSeverity.Success, "Supprimé", $"La machine {machine.Code} a été supprimée.");
+                NotificationService.Notify(NotificationSeverity.Success, "Suppression réussie", $"La machine {machine.Code} a été supprimée.");
                 await LoadDataAsync();
             }
             catch (Exception ex)

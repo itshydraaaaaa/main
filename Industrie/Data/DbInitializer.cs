@@ -11,6 +11,22 @@ namespace Industrie.Data
             var factory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<ApplicationDbContext>>();
             await using var context = await factory.CreateDbContextAsync();
 
+            var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("DbInitializer");
+            var providerName = context.Database.ProviderName ?? "Unknown";
+
+            if (providerName.Contains("Npgsql", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogInformation("[Database Health] Connexion active : Supabase Cloud (PostgreSQL via Npgsql)");
+            }
+            else if (providerName.Contains("InMemory", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogInformation("[Database Health] Mode actif : Stockage local InMemory (Environnement de développement)");
+            }
+            else
+            {
+                logger.LogInformation("[Database Health] Connexion active : {Provider}", providerName);
+            }
+
             // S'assurer que le schéma de base de données existe
             try
             {
@@ -18,8 +34,7 @@ namespace Industrie.Data
             }
             catch (Exception ex)
             {
-                // Journaliser sans bloquer le démarrage
-                Console.WriteLine($"[DbInitializer] Info: EnsureCreated returned: {ex.Message}");
+                logger.LogWarning(ex, "[DbInitializer] EnsureCreated information");
             }
 
             // 1. Initialisation des Sites

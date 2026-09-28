@@ -1,4 +1,4 @@
-﻿using Industrie.Data;
+using Industrie.Data;
 using Industrie.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -132,6 +132,12 @@ namespace Industrie.Services
         public async Task DeleteOSAsync(int id)
         {
             await using var context = await _factory.CreateDbContextAsync();
+            bool hasMachines = await context.Machines.AnyAsync(m => m.OSId == id);
+            if (hasMachines)
+            {
+                throw new InvalidOperationException("Impossible de supprimer cet OS : une ou plusieurs machines y sont rattachées.");
+            }
+
             var os = await context.OSList.FindAsync(id);
             if (os != null)
             {
@@ -167,6 +173,12 @@ namespace Industrie.Services
         public async Task DeleteSiteAsync(int id)
         {
             await using var context = await _factory.CreateDbContextAsync();
+            bool hasMachines = await context.Machines.AnyAsync(m => m.SiteId == id);
+            if (hasMachines)
+            {
+                throw new InvalidOperationException("Impossible de supprimer ce site : une ou plusieurs machines y sont rattachées.");
+            }
+
             var site = await context.Sites.FindAsync(id);
             if (site != null)
             {
@@ -202,6 +214,12 @@ namespace Industrie.Services
         public async Task DeleteEcranAsync(int id)
         {
             await using var context = await _factory.CreateDbContextAsync();
+            bool hasMachines = await context.Machines.AnyAsync(m => m.EcranId == id);
+            if (hasMachines)
+            {
+                throw new InvalidOperationException("Impossible de supprimer ce type d'écran : une ou plusieurs machines y sont rattachées.");
+            }
+
             var ecran = await context.Ecrans.FindAsync(id);
             if (ecran != null)
             {
