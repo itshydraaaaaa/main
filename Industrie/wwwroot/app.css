@@ -1,5 +1,5 @@
 /* =============================================================================
-   LabControl Pro (Industrie) - Design Tokens & Global Modernization Styles
+   LabControl Pro (Industrie) - Design Tokens, Animations & Shape Components
    ============================================================================= */
 
 :root {
@@ -28,13 +28,21 @@
     --brand-text-main: #0f172a;
     --brand-text-muted: #64748b;
 
-    /* Radii & Shadows */
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 14px;
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+    /* Radii & Shapes */
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 18px;
+    --radius-pill: 9999px;
+
+    /* Shadows & Glows */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
+    --glow-primary: 0 0 16px rgba(25, 103, 190, 0.25);
+    --glow-success: 0 0 14px rgba(34, 197, 94, 0.35);
+    --glow-danger: 0 0 14px rgba(239, 68, 68, 0.35);
+    --glow-warning: 0 0 14px rgba(245, 158, 11, 0.35);
 }
 
 html, body {
@@ -42,56 +50,296 @@ html, body {
     color: var(--brand-text-main);
     background-color: var(--brand-surface-subtle);
     -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
 }
 
-/* Modern Card Elevation & Micro-interactions */
+/* =============================================================================
+   1. KEYFRAME ANIMATIONS
+   ============================================================================= */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulseRing {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+}
+
+@keyframes pulseRingDanger {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+@keyframes shimmerWave {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes gentleFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+/* Page entrance animations */
+.page-animate {
+    animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* =============================================================================
+   2. SHAPE COMPONENTS & GEOMETRY
+   ============================================================================= */
+
+/* Parallelogram Industrial Equipment Badge */
+.badge-angled {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.3rem 0.8rem;
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    color: #f8fafc;
+    border-radius: 4px;
+    transform: skewX(-10deg);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.badge-angled span {
+    transform: skewX(10deg);
+    display: inline-block;
+}
+
+.badge-angled:hover {
+    transform: skewX(-10deg) scale(1.04);
+    box-shadow: var(--shadow-md);
+}
+
+/* Live Pulsing Radar Dots */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.3rem 0.75rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1;
+    transition: all 0.2s ease;
+}
+
+.status-pill-success {
+    background-color: var(--brand-success-light);
+    color: #15803d;
+    border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.status-pill-danger {
+    background-color: var(--brand-danger-light);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-dot-active {
+    background-color: var(--brand-success);
+    animation: pulseRing 1.8s infinite;
+}
+
+.status-dot-inactive {
+    background-color: var(--brand-danger);
+    animation: pulseRingDanger 1.8s infinite;
+}
+
+/* Glassmorphism Surface Container */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+}
+
+/* =============================================================================
+   3. MODERN CARDS & MICRO-INTERACTIONS
+   ============================================================================= */
+
 .rz-card {
     border-radius: var(--radius-md) !important;
     border: 1px solid var(--brand-border) !important;
     background-color: var(--brand-surface);
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .kpi-card {
     border-radius: var(--radius-md) !important;
     box-shadow: var(--shadow-sm);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.kpi-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle at top right, rgba(25, 103, 190, 0.06), transparent 70%);
+    pointer-events: none;
 }
 
 .kpi-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
 }
 
-/* Sticky DataGrid Header & Table Polish */
+.kpi-icon-wrapper {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.kpi-card:hover .kpi-icon-wrapper {
+    transform: scale(1.12) rotate(3deg);
+}
+
+/* =============================================================================
+   4. DATAGRID & TABLE ENHANCEMENTS
+   ============================================================================= */
+
 .rz-data-grid {
     border-radius: var(--radius-md);
     overflow: hidden;
     border: 1px solid var(--brand-border);
+    box-shadow: var(--shadow-sm);
 }
 
 .rz-data-grid thead th {
-    background-color: #f8fafc !important;
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
     color: #475569 !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.03em;
-    border-bottom: 2px solid var(--brand-border) !important;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid #cbd5e1 !important;
     position: sticky;
     top: 0;
     z-index: 2;
+    padding: 0.75rem 1rem !important;
+}
+
+.rz-data-grid-data tr {
+    transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
 .rz-data-grid-data tr:hover {
-    background-color: #f1f5f9 !important;
+    background-color: #f0f7ff !important;
 }
 
-/* Badge Polish */
-.rz-badge {
-    font-weight: 500;
+/* Custom modern scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* =============================================================================
+   5. BUTTONS & CONTROLS MICRO-INTERACTIONS
+   ============================================================================= */
+
+.rz-button {
+    border-radius: var(--radius-sm) !important;
+    font-weight: 600 !important;
     letter-spacing: 0.02em;
-    padding: 0.35rem 0.65rem;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.rz-button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.rz-button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.rz-button.rz-primary {
+    background-color: var(--brand-pharma-blue) !important;
+    border-color: var(--brand-pharma-blue) !important;
+}
+
+.rz-button.rz-primary:hover:not(:disabled) {
+    background-color: var(--brand-pharma-dark) !important;
+    box-shadow: var(--glow-primary);
 }
 
 /* Interactive Password Container */
@@ -101,24 +349,57 @@ html, body {
     background-color: #f8fafc;
     border: 1px solid var(--brand-border);
     border-radius: var(--radius-sm);
-    padding: 2px 6px;
+    padding: 3px 8px;
     font-family: Consolas, Monaco, "Courier New", monospace;
     font-size: 0.85rem;
+    transition: all 0.2s ease;
 }
 
-/* Form Sections and Controls */
+.password-box:hover {
+    background-color: #ffffff;
+    border-color: #94a3b8;
+}
+
+/* Modern Form Fieldset Styling */
 .rz-fieldset {
     border-radius: var(--radius-md) !important;
     border: 1px solid var(--brand-border) !important;
     background-color: var(--brand-surface);
     margin-bottom: 1.25rem;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.rz-fieldset:hover {
+    border-color: #cbd5e1 !important;
 }
 
 .rz-fieldset-legend {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--brand-pharma-blue);
-    padding: 0.2rem 0.6rem;
-    font-size: 0.95rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.92rem;
+    background: #ffffff;
+    border-radius: var(--radius-sm);
+}
+
+/* Navigation Menu Polish */
+.rz-panelmenu .rz-navigation-item-link {
+    border-radius: var(--radius-sm);
+    margin: 2px 6px;
+    transition: all 0.2s ease;
+}
+
+.rz-panelmenu .rz-navigation-item-link:hover {
+    background-color: rgba(25, 103, 190, 0.08) !important;
+    color: var(--brand-pharma-blue) !important;
+    transform: translateX(3px);
+}
+
+.rz-panelmenu .rz-state-active > .rz-navigation-item-link {
+    background: linear-gradient(90deg, rgba(25, 103, 190, 0.12) 0%, rgba(25, 103, 190, 0.04) 100%) !important;
+    color: var(--brand-pharma-blue) !important;
+    font-weight: 700 !important;
+    border-left: 3px solid var(--brand-pharma-blue);
 }
 
 /* Responsive adjustments */

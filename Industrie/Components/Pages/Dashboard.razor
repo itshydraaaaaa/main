@@ -9,6 +9,7 @@
 @attribute [Authorize(Policy = "Responsable")]
 <PageTitle>Dashboard - Supervision Industrielle</PageTitle>
 
+<div class="page-animate">
 <!-- EN-TÊTE DU DASHBOARD -->
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
@@ -42,7 +43,7 @@ else
                         <span class="text-muted small text-uppercase fw-bold letter-spacing-1">Parc Total Machines</span>
                         <h2 class="m-0 text-primary fw-bold mt-1">@totalMachines</h2>
                     </div>
-                    <div class="p-2 rounded-circle bg-primary-subtle text-primary">
+                    <div class="p-2 rounded-circle bg-primary-subtle text-primary kpi-icon-wrapper">
                         <RadzenIcon Icon="precision_manufacturing" Style="font-size: 2.2rem;" />
                     </div>
                 </div>
@@ -57,7 +58,7 @@ else
                         <span class="text-muted small text-uppercase fw-bold letter-spacing-1">Sites & Emplacements</span>
                         <h2 class="m-0 text-info fw-bold mt-1">@totalSites</h2>
                     </div>
-                    <div class="p-2 rounded-circle bg-info-subtle text-info">
+                    <div class="p-2 rounded-circle bg-info-subtle text-info kpi-icon-wrapper">
                         <RadzenIcon Icon="domain" Style="font-size: 2.2rem;" />
                     </div>
                 </div>
@@ -72,7 +73,7 @@ else
                         <span class="text-muted small text-uppercase fw-bold letter-spacing-1">Taux de Backup</span>
                         <h2 class="m-0 text-success fw-bold mt-1">@backupPercentage.ToString("0.0")%</h2>
                     </div>
-                    <div class="p-2 rounded-circle bg-success-subtle text-success">
+                    <div class="p-2 rounded-circle bg-success-subtle text-success kpi-icon-wrapper">
                         <RadzenIcon Icon="verified_user" Style="font-size: 2.2rem;" />
                     </div>
                 </div>
@@ -87,7 +88,7 @@ else
                         <span class="text-muted small text-uppercase fw-bold letter-spacing-1">Non Sécurisées</span>
                         <h2 class="m-0 text-danger fw-bold mt-1">@unbackedMachinesCount</h2>
                     </div>
-                    <div class="p-2 rounded-circle bg-danger-subtle text-danger">
+                    <div class="p-2 rounded-circle bg-danger-subtle text-danger kpi-icon-wrapper">
                         <RadzenIcon Icon="warning" Style="font-size: 2.2rem;" />
                     </div>
                 </div>
@@ -193,9 +194,9 @@ else
                 {
                     <RadzenDataGrid Data="@unbackedMachines" TItem="Machine" AllowPaging="true" PageSize="4" Class="rz-data-grid">
                         <Columns>
-                            <RadzenDataGridColumn Property="Code" Title="Code" Width="110px">
+                            <RadzenDataGridColumn Property="Code" Title="Code" Width="125px">
                                 <Template Context="m">
-                                    <RadzenBadge BadgeStyle="BadgeStyle.Dark" Text="@m.Code" />
+                                    <div class="badge-angled"><span>@m.Code</span></div>
                                 </Template>
                             </RadzenDataGridColumn>
 
@@ -237,6 +238,7 @@ else
         </div>
     </div>
 }
+</div>
 
 @code {
     private bool isLoading = true;

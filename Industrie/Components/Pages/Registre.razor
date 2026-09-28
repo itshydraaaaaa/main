@@ -13,6 +13,7 @@
 
 <PageTitle>Registre des Machines</PageTitle>
 
+<div class="page-animate">
 <!-- EN-TÊTE DE PAGE -->
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
@@ -121,9 +122,9 @@
         <Columns>
 
             <!-- CODE -->
-            <RadzenDataGridColumn Property="Code" Title="Code" Width="120px">
+            <RadzenDataGridColumn Property="Code" Title="Code" Width="135px">
                 <Template Context="m">
-                    <RadzenBadge BadgeStyle="BadgeStyle.Dark" Text="@m.Code" Class="w-100 text-center shadow-xs" />
+                    <div class="badge-angled"><span>@m.Code</span></div>
                 </Template>
             </RadzenDataGridColumn>
 
@@ -209,19 +210,25 @@
             </RadzenDataGridColumn>
 
             <!-- BACKUP -->
-            <RadzenDataGridColumn Property="Bukup" Title="Backup" Width="130px" TextAlign="TextAlign.Center">
+            <RadzenDataGridColumn Property="Bukup" Title="Backup" Width="140px" TextAlign="TextAlign.Center">
                 <Template Context="m">
                     @if (m.Bukup)
                     {
-                        <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="Actif" IsPill="true" />
+                        <span class="status-pill status-pill-success">
+                            <span class="status-dot status-dot-active"></span>
+                            Actif
+                        </span>
                         <br />
-                        <small class="text-muted font-monospace" style="font-size: 0.75rem;">
+                        <small class="text-muted font-monospace mt-1 d-inline-block" style="font-size: 0.75rem;">
                             @m.DateBukup.ToString("dd/MM/yyyy")
                         </small>
                     }
                     else
                     {
-                        <RadzenBadge BadgeStyle="BadgeStyle.Danger" Text="Inactif" IsPill="true" />
+                        <span class="status-pill status-pill-danger">
+                            <span class="status-dot status-dot-inactive"></span>
+                            Inactif
+                        </span>
                     }
                 </Template>
             </RadzenDataGridColumn>
@@ -253,6 +260,7 @@
         </EmptyTemplate>
     </RadzenDataGrid>
 </RadzenCard>
+</div>
 
 @code {
     private List<Machine> machinesList = new();

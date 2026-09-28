@@ -15,7 +15,7 @@
 
 <PageTitle>@(isEdit ? $"Modifier {machine.Code} - LabControl Pro" : "Nouvelle Machine - LabControl Pro")</PageTitle>
 
-<div class="rz-my-3 rz-mx-auto" style="max-width: 960px;">
+<div class="rz-my-3 rz-mx-auto page-animate" style="max-width: 960px;">
     <!-- En-tête formulaire -->
     <RadzenCard Class="mb-3 rz-shadow-1">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
@@ -26,7 +26,7 @@
                         <h4 class="m-0 fw-bold text-dark">@(isEdit ? "Modification Machine" : "Nouvelle Machine Industrielle")</h4>
                         @if (isEdit)
                         {
-                            <RadzenBadge BadgeStyle="BadgeStyle.Primary" Text="@machine.Code" IsPill="true" />
+                            <div class="badge-angled"><span>@machine.Code</span></div>
                         }
                     </div>
                     <span class="text-muted text-xs">@(isEdit ? "Mise à jour des paramètres de la machine et des clés d'accès" : "Enregistrement d'un nouvel équipement de laboratoire")</span>
