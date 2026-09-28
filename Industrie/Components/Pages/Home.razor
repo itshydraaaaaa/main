@@ -1,0 +1,492 @@
+﻿@page "/parametrage"
+
+@using Industrie.Models
+@using Industrie.Services
+@using System.ComponentModel.DataAnnotations
+@inject IMachineService MachineService
+@inject NotificationService NotificationService
+@inject DialogService DialogService
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Policy = "Responsable")]
+
+
+
+<PageTitle>Gestion Industrielle - Accueil</PageTitle>
+
+<!-- Loader visible pendant le chargement -->
+@if (isLoading)
+{
+    <div class="text-center my-5">
+        <RadzenLoader />
+        <p class="mt-3">Chargement des données...</p>
+    </div>
+}
+else
+{
+    <!-- Statistiques rapides -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <RadzenCard Class="rz-background-primary-light">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted">Total Sites</span>
+                        <h3 class="mb-0 text-primary">@sitesList.Count</h3>
+                    </div>
+                    <RadzenIcon Icon="place" Style="font-size: 2.5rem;" Class="text-primary" />
+                </div>
+            </RadzenCard>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <RadzenCard Class="rz-background-info-light">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted">Total Écrans</span>
+                        <h3 class="mb-0 text-info">@ecransList.Count</h3>
+                    </div>
+                    <RadzenIcon Icon="tv" Style="font-size: 2.5rem;" Class="text-info" />
+                </div>
+            </RadzenCard>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <RadzenCard Class="rz-background-success-light">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted">Total OS</span>
+                        <h3 class="mb-0 text-success">@osList.Count</h3>
+                    </div>
+                    <RadzenIcon Icon="memory" Style="font-size: 2.5rem;" Class="text-success" />
+                </div>
+            </RadzenCard>
+        </div>
+        <div class="col-md-3 col-sm-6 mb-3">
+            <RadzenCard Class="rz-background-warning-light">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted">Total Machines</span>
+                        <h3 class="mb-0 text-warning">@machinesList.Count</h3>
+                    </div>
+                    <RadzenIcon Icon="precision_manufacturing" Style="font-size: 2.5rem;" Class="text-warning" />
+                </div>
+            </RadzenCard>
+        </div>
+    </div>
+
+    <!-- Onglets principaux -->
+    <RadzenTabs SelectedIndex="0" RenderMode="TabRenderMode.Client">
+        <Tabs>
+            <!-- ONGLET 1 : SITES -->
+            <RadzenTabsItem Text="Sites / Emplacements" Icon="place">
+                <div class="my-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Liste des Sites (@sitesList.Count)</h5>
+                    <RadzenButton Icon="add_circle" Text="Nouveau Site" ButtonStyle="ButtonStyle.Primary" Click="@(() => OpenSiteDialog(new Site()))" />
+                </div>
+
+                <RadzenDataGrid Data="@sitesList" TItem="Site" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="8" Class="rz-shadow-2">
+                    <Columns>
+                        <RadzenDataGridColumn Property="Id" Title="ID" Width="80px" />
+                        <RadzenDataGridColumn Property="Name" Title="Nom du Site">
+                            <Template Context="site">
+                                <strong>@site.Name</strong>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title="Machines Associées" Width="180px" TextAlign="TextAlign.Center">
+                            <Template Context="site">
+                                <RadzenBadge BadgeStyle="BadgeStyle.Primary" Text="@($"{machinesCountBySite.GetValueOrDefault(site.Id, 0)} machine(s)")" IsPill="true" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Width="140px" TextAlign="TextAlign.Center">
+                            <Template Context="site">
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Warning" Size="ButtonSize.Small" Class="me-1" Click="@(() => OpenSiteDialog(site))" />
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => ConfirmDeleteSiteAsync(site))" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                    <EmptyTemplate>
+                        <div class="text-center py-4 text-muted">
+                            <RadzenIcon Icon="place" /> Aucun site enregistré. Cliquez sur "Nouveau Site" pour commencer.
+                        </div>
+                    </EmptyTemplate>
+                </RadzenDataGrid>
+            </RadzenTabsItem>
+
+            <!-- ONGLET 2 : ÉCRANS -->
+            <RadzenTabsItem Text="Types d'Écran" Icon="tv">
+                <div class="my-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Catalogue des Écrans (@ecransList.Count)</h5>
+                    <RadzenButton Icon="add_circle" Text="Nouvel Écran" ButtonStyle="ButtonStyle.Info" Click="@(() => OpenEcranDialog(new Ecran()))" />
+                </div>
+
+                <RadzenDataGrid Data="@ecransList" TItem="Ecran" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="8" Class="rz-shadow-2">
+                    <Columns>
+                        <RadzenDataGridColumn Property="Id" Title="ID" Width="80px" />
+                        <RadzenDataGridColumn Property="Name" Title="Désignation de l'Écran">
+                            <Template Context="ecran">
+                                <strong>@ecran.Name</strong>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title="Machines Associées" Width="180px" TextAlign="TextAlign.Center">
+                            <Template Context="ecran">
+                                <RadzenBadge BadgeStyle="BadgeStyle.Info" Text="@($"{machinesCountByEcran.GetValueOrDefault(ecran.Id, 0)} machine(s)")" IsPill="true" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Width="140px" TextAlign="TextAlign.Center">
+                            <Template Context="ecran">
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Warning" Size="ButtonSize.Small" Class="me-1" Click="@(() => OpenEcranDialog(ecran))" />
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => ConfirmDeleteEcranAsync(ecran))" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                    <EmptyTemplate>
+                        <div class="text-center py-4 text-muted">
+                            <RadzenIcon Icon="tv" /> Aucun type d'écran enregistré.
+                        </div>
+                    </EmptyTemplate>
+                </RadzenDataGrid>
+            </RadzenTabsItem>
+
+            <!-- ONGLET 3 : OS -->
+            <RadzenTabsItem Text="Systèmes d'Exploitation (OS)" Icon="memory">
+                <div class="my-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Catalogue des OS (@osList.Count)</h5>
+                    <RadzenButton Icon="add_circle" Text="Ajouter un OS" ButtonStyle="ButtonStyle.Success" Click="@(() => OpenOSDialog(new OS()))" />
+                </div>
+
+                <RadzenDataGrid Data="@osList" TItem="OS" AllowFiltering="true" AllowSorting="true" AllowPaging="true" PageSize="8" Class="rz-shadow-2">
+                    <Columns>
+                        <RadzenDataGridColumn Property="Id" Title="ID" Width="80px" />
+                        <RadzenDataGridColumn Property="Name" Title="Nom du Système d'Exploitation">
+                            <Template Context="os">
+                                <strong>@os.Name</strong>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title="Machines Associées" Width="180px" TextAlign="TextAlign.Center">
+                            <Template Context="os">
+                                <RadzenBadge BadgeStyle="BadgeStyle.Success" Text="@($"{machinesCountByOS.GetValueOrDefault(os.Id, 0)} machine(s)")" IsPill="true" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Width="140px" TextAlign="TextAlign.Center">
+                            <Template Context="os">
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Warning" Size="ButtonSize.Small" Class="me-1" Click="@(() => OpenOSDialog(os))" />
+                                <RadzenButton Icon="delete" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Click="@(() => ConfirmDeleteOSAsync(os))" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                    <EmptyTemplate>
+                        <div class="text-center py-4 text-muted">
+                            <RadzenIcon Icon="memory" /> Aucun OS enregistré.
+                        </div>
+                    </EmptyTemplate>
+                </RadzenDataGrid>
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
+}
+@code {
+    private List<Site> sitesList = new();
+    private List<Ecran> ecransList = new();
+    private List<OS> osList = new();
+    private List<Machine> machinesList = new();
+
+    // Dictionnaires pour optimiser les performances
+    private Dictionary<int, int> machinesCountBySite = new();
+    private Dictionary<int, int> machinesCountByEcran = new();
+    private Dictionary<int, int> machinesCountByOS = new();
+
+    private bool isLoading = false;
+
+    // Classe interne pour gérer l'état du dialogue - DataAnnotations pour validation
+    private class SiteDialogModel
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Le nom du site est requis")]
+        [StringLength(100, ErrorMessage = "Longueur maximale : 100 caractères")]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    private class EcranDialogModel
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "La désignation est requise")]
+        [StringLength(100, ErrorMessage = "Longueur maximale : 100 caractères")]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    private class OSDialogModel
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Le nom de l'OS est requis")]
+        [StringLength(100, ErrorMessage = "Longueur maximale : 100 caractères")]
+        public string Name { get; set; } = string.Empty;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading = true;
+        try
+        {
+            // Exécution parallèle pour de meilleures performances
+            var sitesTask = MachineService.GetAllSitesAsync();
+            var ecransTask = MachineService.GetAllEcransAsync();
+            var osTask = MachineService.GetAllOSAsync();
+            var machinesTask = MachineService.GetAllAsync();
+
+            await Task.WhenAll(sitesTask, ecransTask, osTask, machinesTask);
+
+            sitesList = await sitesTask;
+            ecransList = await ecransTask;
+            osList = await osTask;
+            machinesList = await machinesTask;
+
+            // Pré-calcul des counts pour optimiser le rendu
+            CalculateMachineCounts();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Erreur de chargement", ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void CalculateMachineCounts()
+    {
+        machinesCountBySite = machinesList
+            .GroupBy(m => m.SiteId)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        machinesCountByEcran = machinesList
+            .GroupBy(m => m.EcranId)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        machinesCountByOS = machinesList
+            .GroupBy(m => m.OSId)
+            .ToDictionary(g => g.Key, g => g.Count());
+    }
+
+    // ==========================================================
+    // LOGIQUE DE DIALOGUE ET CRUD : SITES
+    // ==========================================================
+    private async Task OpenSiteDialog(Site site)
+    {
+        bool isEdit = site.Id > 0;
+        var model = new SiteDialogModel { Id = site.Id, Name = site.Name ?? string.Empty };
+
+        var result = await DialogService.OpenAsync($"{(isEdit ? "Modifier" : "Ajouter")} un Site", ds =>
+            @<EditForm Model="model" OnValidSubmit="() => ds.Close(true)">
+    <DataAnnotationsValidator />
+    <RadzenStack Gap="1.5rem">
+        <RadzenFormField Text="Nom du Site" Variant="Variant.Outlined">
+            <InputText @bind-Value="model.Name"
+                       MaxLength="100"
+                       class="form-control" />
+            <ValidationMessage For="() => model.Name" />
+        </RadzenFormField>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+            <RadzenButton Text="Annuler" ButtonStyle="ButtonStyle.Light" Click="() => ds.Close(false)" />
+            <RadzenButton Text="Enregistrer" ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit" />
+        </RadzenStack>
+    </RadzenStack>
+</EditForm>
+        );
+
+        if (result == true)
+        {
+            try
+            {
+                var siteToSave = new Site { Id = model.Id, Name = model.Name };
+
+                if (isEdit)
+                {
+                    await MachineService.UpdateSiteAsync(siteToSave);
+                    NotificationService.Notify(NotificationSeverity.Success, "Succès", $"Le site {model.Name} a été mis à jour.");
+                }
+                else
+                {
+                    await MachineService.AddSiteAsync(siteToSave);
+                    NotificationService.Notify(NotificationSeverity.Success, "Succès", $"Le site {model.Name} a été créé.");
+                }
+                await LoadDataAsync();
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Erreur", $"Impossible d'enregistrer le site: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task ConfirmDeleteSiteAsync(Site site)
+    {
+        var confirm = await DialogService.Confirm($"Voulez-vous vraiment supprimer le site '{site.Name}' ?", "Confirmation de suppression",
+            new ConfirmOptions { OkButtonText = "Oui", CancelButtonText = "Non" });
+
+        if (confirm == true)
+        {
+            try
+            {
+                await MachineService.DeleteSiteAsync(site.Id);
+                NotificationService.Notify(NotificationSeverity.Success, "Suppression", $"Le site {site.Name} a été supprimé.");
+                await LoadDataAsync();
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Erreur de suppression",
+                    $"Impossible de supprimer ce site. Il est peut-être utilisé par des machines. ({ex.Message})");
+            }
+        }
+    }
+
+    // ==========================================================
+    // LOGIQUE DE DIALOGUE ET CRUD : ÉCRANS
+    // ==========================================================
+    private async Task OpenEcranDialog(Ecran ecran)
+    {
+        bool isEdit = ecran.Id > 0;
+        var model = new EcranDialogModel { Id = ecran.Id, Name = ecran.Name ?? string.Empty };
+
+        var result = await DialogService.OpenAsync($"{(isEdit ? "Modifier" : "Ajouter")} un Type d'Écran", ds =>
+            @<EditForm Model="model" OnValidSubmit="() => ds.Close(true)">
+    <DataAnnotationsValidator />
+    <RadzenStack Gap="1.5rem">
+        <RadzenFormField Text="Désignation / Type d'Écran" Variant="Variant.Outlined">
+            <InputText @bind-Value="model.Name"
+                       MaxLength="100"
+                       class="form-control" />
+            <ValidationMessage For="() => model.Name" />
+        </RadzenFormField>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+            <RadzenButton Text="Annuler" ButtonStyle="ButtonStyle.Light" Click="() => ds.Close(false)" />
+            <RadzenButton Text="Enregistrer" ButtonStyle="ButtonStyle.Info" ButtonType="ButtonType.Submit" />
+        </RadzenStack>
+    </RadzenStack>
+</EditForm>
+        );
+
+        if (result == true)
+        {
+            try
+            {
+                var ecranToSave = new Ecran { Id = model.Id, Name = model.Name };
+
+                if (isEdit)
+                {
+                    await MachineService.UpdateEcranAsync(ecranToSave);
+                    NotificationService.Notify(NotificationSeverity.Success, "Succès", $"L'écran {model.Name} a été mis à jour.");
+                }
+                else
+                {
+                    await MachineService.AddEcranAsync(ecranToSave);
+                    NotificationService.Notify(NotificationSeverity.Success, "Succès", $"L'écran {model.Name} a été créé.");
+                }
+                await LoadDataAsync();
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Erreur", $"Impossible d'enregistrer l'écran: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task ConfirmDeleteEcranAsync(Ecran ecran)
+    {
+        var confirm = await DialogService.Confirm($"Voulez-vous vraiment supprimer l'écran '{ecran.Name}' ?", "Confirmation de suppression",
+            new ConfirmOptions { OkButtonText = "Oui", CancelButtonText = "Non" });
+
+        if (confirm == true)
+        {
+            try
+            {
+                await MachineService.DeleteEcranAsync(ecran.Id);
+                NotificationService.Notify(NotificationSeverity.Success, "Suppression", $"L'écran {ecran.Name} a été supprimé.");
+                await LoadDataAsync();
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Erreur de suppression",
+                    $"Impossible de supprimer cet écran. Il est peut-être utilisé par des machines. ({ex.Message})");
+            }
+        }
+    }
+
+    // ==========================================================
+    // LOGIQUE DE DIALOGUE ET CRUD : OS
+    // ==========================================================
+    private async Task OpenOSDialog(OS os)
+    {
+        bool isEdit = os.Id > 0;
+        var model = new OSDialogModel { Id = os.Id, Name = os.Name ?? string.Empty };
+
+        var result = await DialogService.OpenAsync($"{(isEdit ? "Modifier" : "Ajouter")} un OS", ds =>
+            @<EditForm Model="model" OnValidSubmit="() => ds.Close(true)">
+    <DataAnnotationsValidator />
+    <RadzenStack Gap="1.5rem">
+        <RadzenFormField Text="Nom de l'OS" Variant="Variant.Outlined">
+            <InputText @bind-Value="model.Name"
+                       MaxLength="100"
+                       class="form-control" />
+            <ValidationMessage For="() => model.Name" />
+        </RadzenFormField>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+            <RadzenButton Text="Annuler" ButtonStyle="ButtonStyle.Light" Click="() => ds.Close(false)" />
+            <RadzenButton Text="Enregistrer" ButtonStyle="ButtonStyle.Success" ButtonType="ButtonType.Submit" />
+        </RadzenStack>
+    </RadzenStack>
+</EditForm>
+        );
+
+        if (result == true)
+        {
+            try
+            {
+                var osToSave = new OS { Id = model.Id, Name = model.Name };
+
+                if (isEdit)
+                {
+                    await MachineService.UpdateOSAsync(osToSave);
+                    NotificationService.Notify(NotificationSeverity.Success, "Succès", $"L'OS {model.Name} a été mis à jour.");
+                }
+                else
+                {
+                    await MachineService.AddOSAsync(osToSave);
+                    NotificationService.Notify(NotificationSeverity.Success, "Succès", $"L'OS {model.Name} a été ajouté.");
+                }
+                await LoadDataAsync();
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Erreur", $"Impossible d'enregistrer l'OS: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task ConfirmDeleteOSAsync(OS os)
+    {
+        var confirm = await DialogService.Confirm($"Voulez-vous vraiment supprimer l'OS '{os.Name}' ?", "Confirmation de suppression",
+            new ConfirmOptions { OkButtonText = "Oui", CancelButtonText = "Non" });
+
+        if (confirm == true)
+        {
+            try
+            {
+                await MachineService.DeleteOSAsync(os.Id);
+                NotificationService.Notify(NotificationSeverity.Success, "Suppression", $"L'OS {os.Name} a été supprimé.");
+                await LoadDataAsync();
+            }
+            catch (Exception ex)
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Erreur de suppression",
+                    $"Impossible de supprimer cet OS. Il est peut-être utilisé par des machines. ({ex.Message})");
+            }
+        }
+    }
+}

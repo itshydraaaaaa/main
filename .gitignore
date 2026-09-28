@@ -1,0 +1,25 @@
+# Visual Studio
+.vs/
+.vscode/
+*.suo
+*.user
+*.sln.docstates
+bin/
+obj/
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+
+# NuGet
+packages/
+.nuget/
+
+# Local config
+appsettings.*.json
+*.local.*
+appsettings.json
+
+# OS
+.DS_Store
+Thumbs.db

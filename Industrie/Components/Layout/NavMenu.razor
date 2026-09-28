@@ -1,0 +1,41 @@
+﻿@using Radzen.Blazor
+
+<div class="sidebar-wrapper d-flex flex-column h-100 justify-content-between">
+
+    <div class="sidebar-content flex-grow-1">
+        <!-- Branding Laboratoire Industriel -->
+        <div class="sidebar-header d-flex align-items-center px-3 py-3 border-bottom">
+            <div class="brand-icon-wrapper d-flex align-items-center justify-content-center rounded-3 bg-primary-subtle text-primary">
+                <RadzenIcon Icon="precision_manufacturing" Style="font-size: 1.6rem;" />
+            </div>
+            <div class="ms-3 overflow-hidden">
+                <h6 class="mb-0 fw-bold text-uppercase tracking-wider text-dark small text-truncate">LabControl Pro</h6>
+                <span class="text-muted text-xxs d-block text-truncate">Supervision Machines</span>
+            </div>
+        </div>
+
+        <!-- Menu plat (Sans sous-menus pliables) -->
+        <div class="px-2 py-3">
+            <RadzenPanelMenu Match="NavLinkMatch.All">
+                <RadzenPanelMenuItem Text="Tableau de Bord" Path="/" Icon="dashboard" />
+                <RadzenPanelMenuItem Text="Registre des Machines" Path="/machines" Icon="precision_manufacturing" />
+                <RadzenPanelMenuItem Text="Paramétrage" Path="/parametrage" Icon="tune" />
+            </RadzenPanelMenu>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="sidebar-footer px-3 py-3 border-top text-muted">
+        <div class="d-flex flex-column gap-1">
+            <div class="d-flex align-items-center gap-2 text-xs">
+                <RadzenIcon Icon="developer_mode" Style="font-size: 0.9rem;" Class="text-secondary" />
+                <span>Développé par la <strong>DSI</strong></span>
+            </div>
+            <div class="text-xxs opacity-75 d-flex justify-content-between align-items-center mt-1">
+                <span>© @DateTime.Now.Year</span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 rounded-pill">v0.9</span>
+            </div>
+        </div>
+    </div>
+
+</div>

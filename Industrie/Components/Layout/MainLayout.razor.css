@@ -1,0 +1,76 @@
+/* Wrapper interne pour forcer l'alignement sans casser Radzen */
+.header-content-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    padding-left: 15px;
+    z-index: 3;
+}
+
+/* Centre le parallélogramme parfaitement au milieu du header */
+.header-center {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.logo-parallelogram {
+    height: 100%;
+    width: 320px;
+    clip-path: polygon(15% 0%, 100% 0%, 85% 100%, 0% 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-container {
+    padding: 0 20px;
+}
+
+    .logo-container img {
+        height: 62px;
+        max-width: 100%;
+        object-fit: contain;
+    }
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding-right: 20px;
+    z-index: 3;
+}
+
+.profile-avatar-wrapper {
+    width: 42px;
+    height: 42px;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.leading-none {
+    line-height: 1;
+}
+
+.text-sm {
+    font-size: 0.9rem;
+}
+
+.text-xs {
+    font-size: 0.8rem;
+}

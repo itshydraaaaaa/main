@@ -1,0 +1,302 @@
+﻿@page "/machines/form"
+@page "/machines/form/{CodeParam}"
+
+@using Industrie.Models
+@using Industrie.Services
+@using System.Security.Cryptography
+@using System.Text
+
+@inject IMachineService MachineService
+@inject NotificationService NotificationService
+@inject NavigationManager NavigationManager
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Policy = "Responsable")]
+
+<PageTitle>@(isEdit ? "Modifier la Machine" : "Nouvelle Machine")</PageTitle>
+
+<RadzenCard Class="rz-my-4 rz-mx-auto" Style="max-width: 900px;">
+    <div class="d-flex align-items-center mb-4">
+        <RadzenButton Icon="arrow_back" ButtonStyle="ButtonStyle.Light" Class="me-3" Click="@GoBack" />
+        <h3 class="m-0">@(isEdit ? $"Modifier la machine : {machine.Code}" : "Créer une nouvelle machine")</h3>
+    </div>
+
+    <RadzenTemplateForm TItem="Machine" Data="@machine" Submit="@HandleSubmitAsync">
+        <RadzenStack Gap="1.5rem">
+
+            <!-- SECTION 1 : IDENTIFICATION -->
+            <RadzenFieldset Text="Informations Générales" Icon="computer">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <RadzenFormField Text="Code Machine *" Style="width: 100%;">
+                            <RadzenTextBox @bind-Value="@machine.Code" Disabled="@isEdit" Style="width: 100%;" />
+                        </RadzenFormField>
+                        @if (string.IsNullOrWhiteSpace(machine.Code) && isSubmitted)
+                        {
+                            <span class="text-danger fs-7">Le code est obligatoire.</span>
+                        }
+                    </div>
+
+                    <div class="col-md-4">
+                        <RadzenFormField Text="Nom de la Machine" Style="width: 100%;">
+                            <RadzenTextBox @bind-Value="@machine.Name" Style="width: 100%;" />
+                        </RadzenFormField>
+                    </div>
+
+                    <div class="col-md-4">
+                        <RadzenFormField Text="Nom PC (PcName)" Style="width: 100%;">
+                            <RadzenTextBox @bind-Value="@machine.PcName" Style="width: 100%;" />
+                        </RadzenFormField>
+                    </div>
+                </div>
+            </RadzenFieldset>
+
+            <!-- SECTION 2 : SÉCURITÉ ET ACCÈS -->
+            <RadzenFieldset Text="Accès & Authentification" Icon="lock">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <RadzenFormField Text="Session utilisateur" Style="width: 100%;">
+                            <RadzenTextBox @bind-Value="@machine.Session" Style="width: 100%;" />
+                        </RadzenFormField>
+                    </div>
+
+                    <div class="col-md-6">
+                        <RadzenFormField Text="@(isEdit ? "Mot de passe (Laisser vide pour ne pas modifier)" : "Mot de passe *")" Style="width: 100%;">
+                            <ChildContent>
+                                @if (showPassword)
+                                {
+                                    <RadzenTextBox Value="@rawPassword"
+                                                   @oninput="@(args => rawPassword = args.Value?.ToString() ?? string.Empty)"
+                                                   Style="width: 100%;" />
+                                }
+                                else
+                                {
+                                    <RadzenPassword Value="@rawPassword"
+                                                    @oninput="@(args => rawPassword = args.Value?.ToString() ?? string.Empty)"
+                                                    Style="width: 100%;" />
+                                }
+                            </ChildContent>
+                            <End>
+                                <RadzenButton Icon="@(showPassword ? "visibility_off" : "visibility")"
+                                              ButtonStyle="ButtonStyle.Light"
+                                              Variant="Variant.Flat"
+                                              Click="@(() => showPassword = !showPassword)"
+                                              Attributes="@(new Dictionary<string, object>{ { "tabindex", "-1" } })" />
+                            </End>
+                        </RadzenFormField>
+                    </div>
+                </div>
+            </RadzenFieldset>
+
+            <!-- SECTION 3 : LISTES DÉROULANTES (SITE, OS, ECRAN) -->
+            <RadzenFieldset Text="Configuration Matérielle & Emplacement" Icon="settings">
+                <div class="row g-3">
+                    <!-- DROPDOWN SITE -->
+                    <div class="col-md-4">
+                        <RadzenFormField Text="Site / Emplacement *" Style="width: 100%;">
+                            <RadzenDropDown Data="@sitesList"
+                                            TextProperty="Name"
+                                            ValueProperty="Id"
+                                            @bind-Value="@machine.SiteId"
+                                            Placeholder="Sélectionner un Site"
+                                            Style="width: 100%;" />
+                        </RadzenFormField>
+                    </div>
+
+                    <!-- DROPDOWN OS -->
+                    <div class="col-md-4">
+                        <RadzenFormField Text="Système d'Exploitation (OS) *" Style="width: 100%;">
+                            <RadzenDropDown Data="@osList"
+                                            TextProperty="Name"
+                                            ValueProperty="Id"
+                                            @bind-Value="@machine.OSId"
+                                            Placeholder="Sélectionner un OS"
+                                            Style="width: 100%;" />
+                        </RadzenFormField>
+                    </div>
+
+                    <!-- DROPDOWN ECRAN -->
+                    <div class="col-md-4">
+                        <RadzenFormField Text="Type d'Écran *" Style="width: 100%;">
+                            <RadzenDropDown Data="@ecransList"
+                                            TextProperty="Name"
+                                            ValueProperty="Id"
+                                            @bind-Value="@machine.EcranId"
+                                            Placeholder="Sélectionner un Écran"
+                                            Style="width: 100%;" />
+                        </RadzenFormField>
+                    </div>
+                </div>
+            </RadzenFieldset>
+
+            <!-- SECTION 4 : RESEAU -->
+            <RadzenFieldset Text="Réseau & IP" Icon="lan">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <RadzenFormField Text="Adresse IP Interne" Style="width: 100%;">
+                            <RadzenTextBox @bind-Value="@machine.AdresseIpInterne" Style="width: 100%;" />
+                        </RadzenFormField>
+                    </div>
+
+                    <div class="col-md-6">
+                        <RadzenFormField Text="Adresse IP Externe" Style="width: 100%;">
+                            <RadzenTextBox @bind-Value="@machine.AdresseIpExterne" Style="width: 100%;" />
+                        </RadzenFormField>
+                    </div>
+                </div>
+            </RadzenFieldset>
+
+            <!-- SECTION 5 : SAUVEGARDE (BACKUP) -->
+            <RadzenFieldset Text="Sauvegarde (Backup)" Icon="backup">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-6">
+                        <label class="rz-mb-2 d-block text-muted">Statut de la Sauvegarde</label>
+                        <RadzenToggleButton @bind-Value="@machine.Bukup"
+                                            Text="@(machine.Bukup ? " Backup Activé" : " Backup Désactivé")"
+                                            Icon="@(machine.Bukup ? "check_circle" : "highlight_off")"
+                                            ButtonStyle="@(machine.Bukup ? ButtonStyle.Success : ButtonStyle.Danger)"
+                                            Style="width: 100%; height: 42px;" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <RadzenFormField Text="Dernière Date de Backup" Style="width: 100%;">
+                            <RadzenDatePicker @bind-Value="@selectedDateBukup"
+                                              DateFormat="dd/MM/yyyy"
+                                              Disabled="@(!machine.Bukup)"
+                                              Style="width: 100%;" />
+                        </RadzenFormField>
+                    </div>
+                </div>
+            </RadzenFieldset>
+
+            <!-- BOUTONS D'ACTION -->
+            <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="1rem" Class="mt-3">
+                <RadzenButton Text="Annuler" ButtonStyle="ButtonStyle.Light" Click="@GoBack" />
+                <RadzenButton Text="@(isEdit ? "Mettre à jour" : "Enregistrer")"
+                              Icon="save"
+                              ButtonStyle="ButtonStyle.Primary"
+                              ButtonType="ButtonType.Submit"
+                              IsBusy="@isLoading" />
+            </RadzenStack>
+
+        </RadzenStack>
+    </RadzenTemplateForm>
+</RadzenCard>
+
+@code {
+    [Parameter] public string? CodeParam { get; set; }
+
+    private Machine machine = new() { Code = string.Empty };
+    private List<Site> sitesList = new();
+    private List<Ecran> ecransList = new();
+    private List<OS> osList = new();
+
+    private bool showPassword = false;
+
+    private string rawPassword = string.Empty;
+    private DateTime? selectedDateBukup;
+    private bool isEdit = false;
+    private bool isLoading = false;
+    private bool isSubmitted = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+
+        // Chargement des listes déroulantes
+        sitesList = await MachineService.GetAllSitesAsync();
+        ecransList = await MachineService.GetAllEcransAsync();
+        osList = await MachineService.GetAllOSAsync();
+
+        if (!string.IsNullOrWhiteSpace(CodeParam))
+        {
+            isEdit = true;
+            var existingMachine = await MachineService.GetByCodeAsync(CodeParam);
+            if (existingMachine != null)
+            {
+                machine = existingMachine;
+                selectedDateBukup = machine.DateBukup.ToDateTime(TimeOnly.MinValue);
+            }
+            else
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Erreur", "Machine introuvable.");
+                GoBack();
+            }
+        }
+        else
+        {
+            selectedDateBukup = DateTime.Now;
+        }
+
+        isLoading = false;
+    }
+
+    private async Task HandleSubmitAsync()
+    {
+        isSubmitted = true;
+
+        if (string.IsNullOrWhiteSpace(machine.Code) || machine.SiteId <= 0 || machine.OSId <= 0 || machine.EcranId <= 0)
+        {
+            NotificationService.Notify(NotificationSeverity.Warning, "Formulaire incomplet", "Veuillez remplir tous les champs obligatoires (Code, Site, OS, Écran).");
+            return;
+        }
+
+        try
+        {
+            isLoading = true;
+
+            // 1. Conversion de la Date
+            if (selectedDateBukup.HasValue)
+            {
+                machine.DateBukup = DateOnly.FromDateTime(selectedDateBukup.Value);
+            }
+
+            // 2. Gestion du mot de passe Haché
+            if (!string.IsNullOrWhiteSpace(rawPassword))
+            {
+                machine.Mdp = HashPassword(rawPassword);
+            }
+            else if (!isEdit)
+            {
+                NotificationService.Notify(NotificationSeverity.Warning, "Mot de passe requis", "Veuillez saisir un mot de passe.");
+                isLoading = false;
+                return;
+            }
+
+            // 3. Sauvegarde BDD
+            if (isEdit)
+            {
+                await MachineService.UpdateMachineAsync(machine);
+                NotificationService.Notify(NotificationSeverity.Success, "Succès", "Machine mise à jour avec succès.");
+            }
+            else
+            {
+                await MachineService.AddMachineAsync(machine);
+                NotificationService.Notify(NotificationSeverity.Success, "Succès", "Nouvelle machine créée avec succès.");
+            }
+
+            GoBack();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Erreur lors de l'enregistrement", ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // Algorithme de hachage SHA-256
+    private string HashPassword(string password)
+    {
+        using var sha256 = SHA256.Create();
+        byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+        return Convert.ToBase64String(bytes);
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

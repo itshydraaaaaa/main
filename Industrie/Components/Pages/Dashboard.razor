@@ -1,0 +1,273 @@
+﻿@page "/"
+
+@using Industrie.Models
+@using Industrie.Services
+@inject IMachineService MachineService
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Policy = "Responsable")]
+<PageTitle>Dashboard - Supervision Industrielle</PageTitle>
+
+<!-- EN-TÊTE DU DASHBOARD -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="m-0 text-primary font-weight-bold">
+            <RadzenIcon Icon="dashboard" Class="me-2" />Tableau de Bord IT & Production
+        </h2>
+        <span class="text-muted">Vue globale sur le parc machine, l'infrastructure et la sécurité des sauvegardes</span>
+    </div>
+    <div class="d-flex gap-2">
+        <RadzenButton Icon="refresh" Text="Actualiser" ButtonStyle="ButtonStyle.Light" Click="@LoadDashboardDataAsync" IsBusy="@isLoading" />
+        <RadzenButton Icon="add_circle" Text="Nouvelle Machine" ButtonStyle="ButtonStyle.Primary" Click="@(() => NavigationManager.NavigateTo("/machines/form"))" />
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center align-items-center my-5" style="height: 300px;">
+        <RadzenProgressBarProgress Value="100" Mode="ProgressBarMode.Indeterminate" Style="width: 50%;" />
+    </div>
+}
+else
+{
+    <!-- 1. CARTE KPIs HAUTE VISIBILITÉ -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <RadzenCard Class="rz-shadow-2 border-start border-4 border-primary">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-bold">Parc Total Machines</span>
+                        <h2 class="m-0 text-primary fw-bold">@totalMachines</h2>
+                    </div>
+                    <RadzenIcon Icon="precision_manufacturing" Style="font-size: 3rem; opacity: 0.2;" Class="text-primary" />
+                </div>
+            </RadzenCard>
+        </div>
+
+        <div class="col-md-3">
+            <RadzenCard Class="rz-shadow-2 border-start border-4 border-info">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-bold">Sites & Emplacements</span>
+                        <h2 class="m-0 text-info fw-bold">@totalSites</h2>
+                    </div>
+                    <RadzenIcon Icon="domain" Style="font-size: 3rem; opacity: 0.2;" Class="text-info" />
+                </div>
+            </RadzenCard>
+        </div>
+
+        <div class="col-md-3">
+            <RadzenCard Class="rz-shadow-2 border-start border-4 border-success">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-bold">Taux de Backup</span>
+                        <h2 class="m-0 text-success fw-bold">@backupPercentage.ToString("0.0")%</h2>
+                    </div>
+                    <RadzenIcon Icon="verified_user" Style="font-size: 3rem; opacity: 0.2;" Class="text-success" />
+                </div>
+            </RadzenCard>
+        </div>
+
+        <div class="col-md-3">
+            <RadzenCard Class="rz-shadow-2 border-start border-4 border-danger">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-bold">Machines non sécurisées</span>
+                        <h2 class="m-0 text-danger fw-bold">@unbackedMachinesCount</h2>
+                    </div>
+                    <RadzenIcon Icon="warning" Style="font-size: 3rem; opacity: 0.2;" Class="text-danger" />
+                </div>
+            </RadzenCard>
+        </div>
+    </div>
+
+    <!-- 2. SECTION GRAPHIQUES ET ANALYTICS -->
+    <div class="row g-4 mb-4">
+        <!-- REPARTITION PAR SITE (DONUT CHART) -->
+        <div class="col-md-6">
+            <RadzenCard Class="rz-shadow-3 style-card-chart">
+                <h5 class="mb-3 text-dark fw-bold">
+                    <RadzenIcon Icon="pie_chart" Class="me-2 text-primary" />Répartition du Parc par Site
+                </h5>
+                @if (siteChartData.Any())
+                {
+                    <RadzenChart Style="height: 300px;">
+                        <RadzenPieSeries Data="@siteChartData" CategoryProperty="Label" ValueProperty="Count" Fills="@chartColors">
+                            <RadzenSeriesDataLabels Visible="true" />
+                        </RadzenPieSeries>
+                    </RadzenChart>
+                }
+                else
+                {
+                    <p class="text-muted text-center py-5">Aucune donnée de site disponible.</p>
+                }
+            </RadzenCard>
+        </div>
+
+        <!-- REPARTITION PAR SYSTÈME D'EXPLOITATION (HISTOGRAMME) -->
+        <div class="col-md-6">
+            <RadzenCard Class="rz-shadow-3 style-card-chart">
+                <h5 class="mb-3 text-dark fw-bold">
+                    <RadzenIcon Icon="bar_chart" Class="me-2 text-success" />Distribution par Système (OS)
+                </h5>
+                @if (osChartData.Any())
+                {
+                    <RadzenChart Style="height: 300px;">
+                        <RadzenColumnSeries Data="@osChartData" CategoryProperty="Label" ValueProperty="Count" Fill="#22c55e">
+                            <RadzenSeriesDataLabels Visible="true" />
+                        </RadzenColumnSeries>
+                        <RadzenCategoryAxis Padding="20" />
+                        <RadzenValueAxis Min="0" Step="1" />
+                    </RadzenChart>
+                }
+                else
+                {
+                    <p class="text-muted text-center py-5">Aucune donnée d'OS disponible.</p>
+                }
+            </RadzenCard>
+        </div>
+    </div>
+
+    <!-- 3. SECTION METRIQUE CONFORMITÉ ET ALERTES SÉCURITÉ -->
+    <div class="row g-4">
+        <!-- JAUGE DE CONFORMITÉ BACKUP -->
+        <div class="col-md-4">
+            <RadzenCard Class="rz-shadow-3 text-center d-flex flex-column justify-content-center align-items-center" Style="min-height: 350px;">
+                <h5 class="mb-1 fw-bold">Indicateur de Conformité Sauvegarde</h5>
+                <span class="text-muted small mb-3">Objectif IT : 100% des machines sauvegardées</span>
+
+                <RadzenRadialGauge Style="width: 100%; height: 220px;">
+                    <RadzenRadialGaugeScale StartAngle="-140" EndAngle="140" Min="0" Max="100" Step="20">
+                        <RadzenRadialGaugeScalePointer Value="@backupPercentage" Length="0.8" Width="10" />
+                        <RadzenRadialGaugeScaleRange From="0" To="50" Fill="#ef4444" />
+                        <RadzenRadialGaugeScaleRange From="50" To="85" Fill="#eab308" />
+                        <RadzenRadialGaugeScaleRange From="85" To="100" Fill="#22c55e" />
+                    </RadzenRadialGaugeScale>
+                </RadzenRadialGauge>
+
+                <div class="mt-2">
+                    <RadzenBadge BadgeStyle="@(backupPercentage >= 85 ? BadgeStyle.Success : BadgeStyle.Danger)" 
+                                 Text="@($"{backupCount} / {totalMachines} Machines conformes")" 
+                                 IsPill="true" Class="px-3 py-2 fs-6" />
+                </div>
+            </RadzenCard>
+        </div>
+
+        <!-- TABLEAU DES MACHINES SANS BACKUP (ALERTES CRITIQUES) -->
+        <div class="col-md-8">
+            <RadzenCard Class="rz-shadow-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="m-0 text-danger fw-bold">
+                        <RadzenIcon Icon="gpp_maybe" Class="me-2" />Alertes Sauvegarde (Backup Désactivé)
+                    </h5>
+                    <RadzenButton Text="Voir le registre complet" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="@(() => NavigationManager.NavigateTo("/machines"))" />
+                </div>
+
+                <RadzenDataGrid Data="@unbackedMachines" TItem="Machine" AllowPaging="true" PageSize="4" Class="rz-grid-table">
+                    <Columns>
+                        <RadzenDataGridColumn Property="Code" Title="Code" Width="100px">
+                            <Template Context="m">
+                                <RadzenBadge BadgeStyle="BadgeStyle.Dark" Text="@m.Code" />
+                            </Template>
+                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn Property="Name" Title="Machine">
+                            <Template Context="m">
+                                <strong>@m.Name</strong>
+                            </Template>
+                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn Property="Site.Name" Title="Site">
+                            <Template Context="m">
+                                <RadzenBadge BadgeStyle="BadgeStyle.Primary" Text="@(m.Site?.Name ?? "N/A")" IsPill="true" />
+                            </Template>
+                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn Property="AdresseIpInterne" Title="IP Interne">
+                            <Template Context="m">
+                                <span class="font-monospace">@(string.IsNullOrWhiteSpace(m.AdresseIpInterne) ? "-" : m.AdresseIpInterne)</span>
+                            </Template>
+                        </RadzenDataGridColumn>
+
+                        <RadzenDataGridColumn Title="Action" Width="100px" TextAlign="TextAlign.Center">
+                            <Template Context="m">
+                                <RadzenButton Icon="edit" ButtonStyle="ButtonStyle.Warning" Size="ButtonSize.Small" Click="@(() => NavigationManager.NavigateTo($"/machines/form/{m.Code}"))" ToolTip="Corriger" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            </RadzenCard>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isLoading = true;
+
+    private int totalMachines = 0;
+    private int totalSites = 0;
+    private int backupCount = 0;
+    private int unbackedMachinesCount = 0;
+    private double backupPercentage = 0;
+
+    private List<ChartDataModel> siteChartData = new();
+    private List<ChartDataModel> osChartData = new();
+    private List<Machine> unbackedMachines = new();
+
+    private readonly string[] chartColors = new[] { "#3b82f6", "#22c55e", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardDataAsync();
+    }
+
+    private async Task LoadDashboardDataAsync()
+    {
+        isLoading = true;
+        try
+        {
+            var machines = await MachineService.GetAllAsync();
+            var sites = await MachineService.GetAllSitesAsync();
+            var osList = await MachineService.GetAllOSAsync();
+
+            totalMachines = machines.Count;
+            totalSites = sites.Count;
+
+            backupCount = machines.Count(m => m.Bukup);
+            unbackedMachinesCount = totalMachines - backupCount;
+            backupPercentage = totalMachines > 0 ? ((double)backupCount / totalMachines) * 100 : 0;
+
+            // Données Graphique 1 : Répartition par Site
+            siteChartData = sites.Select(s => new ChartDataModel
+            {
+                Label = s.Name,
+                Count = machines.Count(m => m.SiteId == s.Id)
+            }).Where(d => d.Count > 0).ToList();
+
+            // Données Graphique 2 : Répartition par OS
+            osChartData = osList.Select(o => new ChartDataModel
+            {
+                Label = o.Name,
+                Count = machines.Count(m => m.OSId == o.Id)
+            }).Where(d => d.Count > 0).ToList();
+
+            // Liste des alertes : machines sans backup
+            unbackedMachines = machines.Where(m => !m.Bukup).ToList();
+        }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Erreur Dashboard", ex.Message);
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class ChartDataModel
+    {
+        public string Label { get; set; } = string.Empty;
+        public int Count { get; set; }
+    }
+}

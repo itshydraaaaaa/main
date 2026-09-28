@@ -1,0 +1,129 @@
+﻿@using Radzen.Blazor
+@using System.Timers
+@implements IDisposable
+@inherits LayoutComponentBase
+
+<RadzenComponents />
+
+<RadzenLayout Style="grid-template-areas: 'rz-header rz-header' 'rz-sidebar rz-body'; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr; height: 100vh;">
+
+    <RadzenHeader Class="custom-pharma-header" Style="height: 70px; z-index: 2; background-color: #1967be; grid-area: rz-header;">
+        <div class="header-content-wrapper">
+
+            <div class="header-left">
+                <RadzenSidebarToggle Click="@(() => sidebarExpanded = !sidebarExpanded)" ButtonStyle="ButtonStyle.Light" Variant="Variant.Flat" Class="text-white" Style="background: transparent;" />
+            </div>
+
+            <div class="header-center">
+                <div class="logo-parallelogram bg-white">
+                    <div class="logo-container">
+                        <img src="images/Logo.png" alt="Médis / Neapolis" />
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div class="header-right text-white text-end">
+                <div class="date-time-container">
+                    <div class="fw-bold text-capitalize text-sm leading-none">@tunisDateTime.ToString("dddd dd MMM.", new System.Globalization.CultureInfo("fr-FR"))</div>
+                    <div class="text-xs opacity-75 mt-1">@tunisDateTime.ToString("HH:mm")</div>
+                </div>
+
+                <div class="profile-avatar-wrapper">
+                    <RadzenIcon Icon="person" Style="font-size: 1.5rem; color: white;" />
+                </div>
+            </div>
+
+        </div>
+    </RadzenHeader>
+
+
+    <RadzenSidebar @bind-Expanded="@sidebarExpanded" Class="bg-light border-end p-0" Style="grid-area: rz-sidebar; width: 260px;">
+        <NavMenu />
+    </RadzenSidebar>
+
+
+
+    <RadzenBody Style="grid-area: rz-body;" Class="bg-body-tertiary p-4 overflow-auto">
+        <RadzenCard Variant="Variant.Flat" Class="rz-border-radius-8 rz-shadow-xs min-vh-100 p-4 bg-white">
+            @Body
+        </RadzenCard>
+    </RadzenBody>
+
+</RadzenLayout>
+
+@code {
+    private bool sidebarExpanded = true;
+    private DateTime tunisDateTime;
+    private Timer? timer;
+
+    protected override void OnInitialized()
+    {
+        UpdateTunisTime();
+
+        timer = new Timer(60000);
+        timer.Elapsed += (sender, e) => InvokeAsync(() =>
+        {
+            UpdateTunisTime();
+            StateHasChanged();
+        });
+        timer.Start();
+    }
+
+    private void UpdateTunisTime()
+    {
+        tunisDateTime = DateTime.UtcNow.AddHours(1); // Heure de Tunis (UTC+1)
+    }
+
+    public void Dispose()
+    {
+        timer?.Dispose();
+    }
+}
+<style>
+
+    .notification-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        max-width: 400px;
+        background: white;
+        border: 2px solid #17a2b8;
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-in-out;
+    }
+
+    @@keyframes slideIn {
+        from {
+            transform: translateX(450px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .notification-container .alert {
+        margin: 0;
+    }
+
+    .notification-container ul {
+        list-style: none;
+        padding: 0;
+    }
+
+    .notification-container li {
+        padding: 8px 0;
+        border-bottom: 1px solid #ddd;
+    }
+
+        .notification-container li:last-child {
+            border-bottom: none;
+        }
+</style>

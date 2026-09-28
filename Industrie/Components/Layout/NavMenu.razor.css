@@ -1,0 +1,56 @@
+/* Sidebar globale fixe sans scrollbar */
+.sidebar-wrapper {
+    height: 100vh;
+    max-height: 100vh;
+    background-color: #ffffff;
+    border-right: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+
+/* Icône de la marque */
+.brand-icon-wrapper {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+}
+
+.tracking-wider {
+    letter-spacing: 0.04em;
+}
+
+.text-xs {
+    font-size: 0.75rem;
+}
+
+.text-xxs {
+    font-size: 0.68rem;
+}
+
+/* Suppression des bordures Radzen */
+::deep .rz-panel-menu {
+    border: none !important;
+    background: transparent !important;
+}
+
+/* Éléments de menu (coins arrondis) */
+::deep .rz-navigation-item-wrapper {
+    border-radius: 8px;
+    margin: 3px 0;
+    transition: all 0.15s ease-in-out;
+}
+
+    ::deep .rz-navigation-item-wrapper:hover {
+        background-color: #f1f5f9 !important;
+    }
+
+    /* État actif (Page courante) */
+    ::deep .rz-navigation-item-wrapper.rz-state-active,
+    ::deep .rz-navigation-item-link.rz-state-active {
+        background-color: #e0f2fe !important; /* Bleu clair technique */
+        color: #0284c7 !important;
+        font-weight: 600;
+    }
+
+        ::deep .rz-navigation-item-wrapper.rz-state-active .rz-navigation-item-icon {
+            color: #0284c7 !important;
+        }
