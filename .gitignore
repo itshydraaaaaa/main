@@ -17,6 +17,7 @@ packages/
 
 # Local config
 appsettings.*.json
+!appsettings.example.json
 *.local.*
 appsettings.json
 

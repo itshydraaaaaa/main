@@ -1,4 +1,4 @@
-﻿@page "/machines/form"
+@page "/machines/form"
 @page "/machines/form/{CodeParam}"
 
 @using Industrie.Models
@@ -251,10 +251,10 @@
                 machine.DateBukup = DateOnly.FromDateTime(selectedDateBukup.Value);
             }
 
-            // 2. Gestion du mot de passe Haché
+            // 2. Gestion du mot de passe (Chiffrement AES-GCM transparent par EF Core)
             if (!string.IsNullOrWhiteSpace(rawPassword))
             {
-                machine.Mdp = HashPassword(rawPassword);
+                machine.Mdp = rawPassword;
             }
             else if (!isEdit)
             {
@@ -287,13 +287,6 @@
         }
     }
 
-    // Algorithme de hachage SHA-256
-    private string HashPassword(string password)
-    {
-        using var sha256 = SHA256.Create();
-        byte[] bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-        return Convert.ToBase64String(bytes);
-    }
 
     private void GoBack()
     {
