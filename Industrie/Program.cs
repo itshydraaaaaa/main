@@ -50,20 +50,22 @@ builder.Services.AddDbContextFactory<ApplicationDbContext>((sp, options) =>
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
     .AddNegotiate();
 
-builder.Services.AddAuthorization(options =>
-{
-    options.FallbackPolicy = options.DefaultPolicy;
-});
-
 builder.Services.AddCascadingAuthenticationState();
 
 if (builder.Environment.IsDevelopment())
 {
+    // Mode développement : accès direct sans forcer le challenge Negotiate Windows
     builder.Services.AddAuthorizationBuilder()
         .AddPolicy("Responsable", policy => policy.RequireAssertion(_ => true));
 }
 else
 {
+    // En production : chaque requête exige l'authentification de domaine Windows
+    builder.Services.AddAuthorization(options =>
+    {
+        options.FallbackPolicy = options.DefaultPolicy;
+    });
+
     builder.Services.AddAuthorizationBuilder()
         .AddPolicy("Responsable", policy =>
             policy.RequireRole("MEDIS-NABEUL\\GMEDIS"));
