@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LabControl Pro - Portail & Architecture Système</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-pharma-blue: #1967be;
+            --brand-pharma-dark: #124b8d;
+            --brand-accent: #0284c7;
+            --brand-success: #22c55e;
+            --brand-warning: #f59e0b;
+            --brand-danger: #ef4444;
+            --bg-body: #0b1120;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --border-card: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(25, 103, 190, 0.25), transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(2, 132, 199, 0.18), transparent 40%);
+        }
+
+        .container {
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 3.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-card);
+            flex-wrap: gap;
+            gap: 1.5rem;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .badge-brand {
+            background: linear-gradient(135deg, var(--brand-pharma-blue), var(--brand-accent));
+            color: white;
+            font-weight: 800;
+            font-size: 1.1rem;
+            padding: 0.5rem 0.9rem;
+            border-radius: 8px;
+            letter-spacing: -0.02em;
+            box-shadow: 0 0 20px rgba(25, 103, 190, 0.4);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(34, 197, 94, 0.12);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            padding: 0.35rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--brand-success);
+            border-radius: 50%;
+            animation: pulseDot 1.8s infinite;
+        }
+
+        @keyframes pulseDot {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 7px rgba(34, 197, 94, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 1.25rem;
+            background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            max-width: 720px;
+            margin: 0 auto 2rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.6rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--brand-pharma-blue), var(--brand-accent));
+            color: white;
+            box-shadow: 0 4px 15px rgba(25, 103, 190, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(25, 103, 190, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border-card);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 4rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 1.75rem;
+            backdrop-filter: blur(12px);
+            transition: transform 0.25s ease, border-color 0.25s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        .card-tag {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--brand-accent);
+            margin-bottom: 0.75rem;
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .badge-angled {
+            display: inline-block;
+            background: rgba(25, 103, 190, 0.2);
+            border: 1px solid rgba(25, 103, 190, 0.4);
+            color: #60a5fa;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            transform: skewX(-10deg);
+        }
+
+        .badge-angled span {
+            display: inline-block;
+            transform: skewX(10deg);
+        }
+
+        .code-box {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-card);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            color: #38bdf8;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+
+        footer {
+            text-align: center;
+            padding-top: 3rem;
+            border-top: 1px solid var(--border-card);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-area">
+                <div class="badge-brand">LP</div>
+                <div>
+                    <strong style="font-size: 1.15rem; display: block;">LabControl Pro</strong>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Supervision & Gestion Industrielle</span>
+                </div>
+            </div>
+            <div class="status-pill">
+                <span class="status-dot"></span>
+                <span>Système .NET 9 Prêt</span>
+            </div>
+        </header>
+
+        <section class="hero">
+            <h1>Supervision Industrielle & Traçabilité Pharmaceutique</h1>
+            <p>Application d'entreprise pour le contrôle, la gestion de parc machine, la conformité des sauvegardes et le chiffrement transparent AES-256 GCM.</p>
+            <div class="hero-actions">
+                <a href="http://localhost:5014" class="btn btn-primary" target="_blank">
+                    🚀 Ouvrir LabControl Pro (Local)
+                </a>
+                <a href="https://github.com/itshydraaaaaa/main" class="btn btn-secondary" target="_blank">
+                    📦 Dépôt GitHub (Code Source)
+                </a>
+            </div>
+        </section>
+
+        <div class="grid">
+            <div class="card">
+                <span class="card-tag">Architecture & Stack</span>
+                <h3>.NET 9 Blazor Server</h3>
+                <p>Moteur d'application réactif temps réel avec Radzen.Blazor, Entity Framework Core 9 et compatibilité multi-base de données (Supabase PostgreSQL / InMemory local).</p>
+                <div class="code-box">dotnet run --launch-profile https</div>
+            </div>
+
+            <div class="card">
+                <span class="card-tag">Sécurité & Chiffrement</span>
+                <h3>AES-256 GCM Authentifié</h3>
+                <p>Chiffrement transparent au niveau ORM pour les mots de passe machine avec protection anti-corruption, gestion d'erreurs par ligne et respect des normes 21 CFR Part 11.</p>
+                <div class="badge-angled" style="margin-top: 1rem;"><span>AES_GCM_256_ACTIVE</span></div>
+            </div>
+
+            <div class="card">
+                <span class="card-tag">Déploiement Cloud</span>
+                <h3>Conteneur Docker Prêt</h3>
+                <p>Multi-stage Dockerfile inclus dans le projet pour déploiement en 1 clic sur Render, Railway, Fly.io ou Azure App Service avec support WebSocket / SignalR complet.</p>
+                <div class="code-box">docker build -t labcontrol-pro .</div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 LabControl Pro — Développé pour Médis / Neapolis Industrielle</p>
+        </footer>
+    </div>
+</body>
+</html>
